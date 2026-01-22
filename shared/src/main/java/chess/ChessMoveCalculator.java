@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.*;
 
 public class ChessMoveCalculator {
     private ChessBoard board;
@@ -35,21 +36,68 @@ public class ChessMoveCalculator {
         return null;
     }
 
+    private boolean checkSquare(Collection<ChessMove> returnMoves, ChessPosition incrementingPosition) {
+        if (board.getPiece(incrementingPosition) == null) {
+            returnMoves.add(new ChessMove(position,incrementingPosition,null));
+            return false;
+        }
+        if ((board.getPiece(incrementingPosition) != null)){
+            if (board.getPiece(incrementingPosition).getTeamColor() != piece.getTeamColor()) {
+                returnMoves.add(new ChessMove(position,incrementingPosition,null));
+            }
+            return true;
+        }
+        return true;
+    }
+
     private Collection<ChessMove> movePawn() {
         return null;
     }
     private Collection<ChessMove> moveRook() {
-        return null;
+        List<ChessMove> returnMoves = new ArrayList<>();
+        int i = 1;
+        boolean pieceBlocking = false;
+        while (position.getRow() + i <= 8 && !pieceBlocking) {
+            ChessPosition incrementingPosition = new ChessPosition(position.getRow() + i, position.getColumn());
+            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            i++;
+        }
+        i = 1;
+        pieceBlocking = false;
+        while (position.getRow() - i >= 1 && !pieceBlocking) {
+            ChessPosition incrementingPosition = new ChessPosition(position.getRow() - i, position.getColumn());
+            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            i--;
+        }
+        i = 1;
+        pieceBlocking = false;
+        while (position.getColumn() + i <= 8 && !pieceBlocking) {
+            ChessPosition incrementingPosition = new ChessPosition(position.getRow(), position.getColumn() + i);
+            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            i++;
+        }
+        i = 1;
+        pieceBlocking = false;
+        while (position.getColumn() - i >= 1 && !pieceBlocking) {
+            ChessPosition incrementingPosition = new ChessPosition(position.getRow(), position.getColumn() - i);
+            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            i++;
+        }
+        return returnMoves;
     }
+
     private Collection<ChessMove> moveKnight() {
         return null;
     }
+
     private Collection<ChessMove> moveBishop() {
         return null;
     }
+
     private Collection<ChessMove> moveKing() {
         return null;
     }
+
     private Collection<ChessMove> moveQueen() {
         return null;
     }
