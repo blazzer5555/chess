@@ -205,7 +205,7 @@ public class ChessMoveCalculator {
         while (position.getRow() - i >= 1 && position.getColumn() + i <= 8 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() - i, position.getColumn() + i);
             pieceBlocking = checkSquare(returnMoves, incrementingPosition);
-            i--;
+            i++;
         }
         i = 1;
         pieceBlocking = false;
