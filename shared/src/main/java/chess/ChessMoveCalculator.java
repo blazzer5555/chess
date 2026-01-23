@@ -263,9 +263,10 @@ public class ChessMoveCalculator {
     }
 
     private Collection<ChessMove> moveQueen() {
-        Collection<ChessMove> returnMoves = moveRook();
-        returnMoves.addAll(moveBishop());
-        return returnMoves;
+        Collection<ChessMove> returnMoves1 = moveRook();
+        Collection<ChessMove> returnMoves2 = moveBishop();
+        returnMoves1.addAll(returnMoves2);
+        return returnMoves1;
     }
 
 }
