@@ -242,4 +242,3 @@ public class ChessGame {
         return Objects.hash(board, player_turn);
     }
 }
-
