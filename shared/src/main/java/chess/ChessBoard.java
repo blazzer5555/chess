@@ -94,4 +94,3 @@ public class ChessBoard {
         return Arrays.deepHashCode(board);
     }
 }
-
