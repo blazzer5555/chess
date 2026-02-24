@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.*;
 
 public class ChessMoveCalculator {
-    private ChessBoard board;
-    private ChessPosition position;
-    private ChessPiece piece;
+    private final ChessBoard board;
+    private final ChessPosition position;
+    private final ChessPiece piece;
 
     public ChessMoveCalculator(ChessBoard board, ChessPosition position) {
         this.board = board;
@@ -16,7 +16,12 @@ public class ChessMoveCalculator {
 
     public Collection<ChessMove> calculateMove() {
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            return movePawn();
+            if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                return moveWhitePawn();
+            }
+            else {
+                return moveBlackPawn();
+            }
         }
         else if (piece.getPieceType() == ChessPiece.PieceType.ROOK) {
             return moveRook();
@@ -48,71 +53,71 @@ public class ChessMoveCalculator {
         }
     }
 
-    private boolean checkSquare(Collection<ChessMove> returnMoves, ChessPosition incrementingPosition) {
+    private boolean hasPieceInSquare(Collection<ChessMove> returnMoves, ChessPosition incrementingPosition) {
         if (board.getPiece(incrementingPosition) == null) {
             returnMoves.add(new ChessMove(position, incrementingPosition,null));
             return false;
         }
-        if ((board.getPiece(incrementingPosition) != null)){
+        else {
             if (board.getPiece(incrementingPosition).getTeamColor() != piece.getTeamColor()) {
                 returnMoves.add(new ChessMove(position, incrementingPosition,null));
             }
             return true;
         }
-        return true;
     }
 
-    private Collection<ChessMove> movePawn() {
+    private Collection<ChessMove> moveWhitePawn() {
         List<ChessMove> returnMoves = new ArrayList<>();
-        if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            ChessPosition pawnPosition = new ChessPosition(position.getRow() + 1, position.getColumn());
-            if (board.getPiece(pawnPosition) == null) {
-                checkPromotionSquare(returnMoves, pawnPosition);
-                pawnPosition = new ChessPosition(position.getRow() + 2, position.getColumn());
-                if (position.getRow() == 2 && board.getPiece(pawnPosition) == null) {
-                    returnMoves.add(new ChessMove(position, pawnPosition, null));
-                }
+        ChessPosition pawnPosition = new ChessPosition(position.getRow() + 1, position.getColumn());
+        if (board.getPiece(pawnPosition) == null) {
+            checkPromotionSquare(returnMoves, pawnPosition);
+            pawnPosition = new ChessPosition(position.getRow() + 2, position.getColumn());
+            if (position.getRow() == 2 && board.getPiece(pawnPosition) == null) {
+                returnMoves.add(new ChessMove(position, pawnPosition, null));
             }
-            if (position.getColumn() + 1 <= 8) {
-                pawnPosition = new ChessPosition(position.getRow() + 1, position.getColumn() + 1);
-                if (board.getPiece(pawnPosition) != null) {
-                    if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.BLACK) {
-                        checkPromotionSquare(returnMoves, pawnPosition);
-                    }
-                }
-            }
-            if (position.getColumn() - 1 >= 1) {
-                pawnPosition = new ChessPosition(position.getRow() + 1, position.getColumn() - 1);
-                if (board.getPiece(pawnPosition) != null) {
-                    if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.BLACK) {
-                        checkPromotionSquare(returnMoves, pawnPosition);
-                    }
+        }
+        if (position.getColumn() + 1 <= 8) {
+            pawnPosition = new ChessPosition(position.getRow() + 1, position.getColumn() + 1);
+            if (board.getPiece(pawnPosition) != null) {
+                if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                    checkPromotionSquare(returnMoves, pawnPosition);
                 }
             }
         }
-        else {
-            ChessPosition pawnPosition = new ChessPosition(position.getRow() - 1, position.getColumn());
-            if (board.getPiece(pawnPosition) == null) {
-                checkPromotionSquare(returnMoves, pawnPosition);
-                pawnPosition = new ChessPosition(position.getRow() - 2, position.getColumn());
-                if (position.getRow() == 7 && board.getPiece(pawnPosition) == null) {
-                    returnMoves.add(new ChessMove(position, pawnPosition, null));
+        if (position.getColumn() - 1 >= 1) {
+            pawnPosition = new ChessPosition(position.getRow() + 1, position.getColumn() - 1);
+            if (board.getPiece(pawnPosition) != null) {
+                if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                    checkPromotionSquare(returnMoves, pawnPosition);
                 }
             }
-            if (position.getColumn() + 1 <= 8) {
-                pawnPosition = new ChessPosition(position.getRow() - 1, position.getColumn() + 1);
-                if (board.getPiece(pawnPosition) != null) {
-                    if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
-                        checkPromotionSquare(returnMoves, pawnPosition);
-                    }
+        }
+        return returnMoves;
+    }
+
+    private Collection<ChessMove> moveBlackPawn() {
+        List<ChessMove> returnMoves = new ArrayList<>();
+        ChessPosition pawnPosition = new ChessPosition(position.getRow() - 1, position.getColumn());
+        if (board.getPiece(pawnPosition) == null) {
+            checkPromotionSquare(returnMoves, pawnPosition);
+            pawnPosition = new ChessPosition(position.getRow() - 2, position.getColumn());
+            if (position.getRow() == 7 && board.getPiece(pawnPosition) == null) {
+                returnMoves.add(new ChessMove(position, pawnPosition, null));
+            }
+        }
+        if (position.getColumn() + 1 <= 8) {
+            pawnPosition = new ChessPosition(position.getRow() - 1, position.getColumn() + 1);
+            if (board.getPiece(pawnPosition) != null) {
+                if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    checkPromotionSquare(returnMoves, pawnPosition);
                 }
             }
-            if (position.getColumn() - 1 >= 1) {
-                pawnPosition = new ChessPosition(position.getRow() - 1, position.getColumn() - 1);
-                if (board.getPiece(pawnPosition) != null) {
-                    if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
-                        checkPromotionSquare(returnMoves, pawnPosition);
-                    }
+        }
+        if (position.getColumn() - 1 >= 1) {
+            pawnPosition = new ChessPosition(position.getRow() - 1, position.getColumn() - 1);
+            if (board.getPiece(pawnPosition) != null) {
+                if (board.getPiece(pawnPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    checkPromotionSquare(returnMoves, pawnPosition);
                 }
             }
         }
@@ -125,28 +130,28 @@ public class ChessMoveCalculator {
         boolean pieceBlocking = false;
         while (position.getRow() + i <= 8 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() + i, position.getColumn());
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         i = 1;
         pieceBlocking = false;
         while (position.getRow() - i >= 1 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() - i, position.getColumn());
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         i = 1;
         pieceBlocking = false;
         while (position.getColumn() + i <= 8 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow(), position.getColumn() + i);
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         i = 1;
         pieceBlocking = false;
         while (position.getColumn() - i >= 1 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow(), position.getColumn() - i);
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         return returnMoves;
@@ -156,35 +161,35 @@ public class ChessMoveCalculator {
         List<ChessMove> returnMoves = new ArrayList<>();
         if (position.getRow() + 2 <= 8 && position.getColumn() + 1 <= 8) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() + 2, position.getColumn() + 1);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() + 2 <= 8 && position.getColumn() - 1 >= 1) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() + 2, position.getColumn() - 1);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() - 2 >= 1 && position.getColumn() - 1 >= 1) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() - 2, position.getColumn() - 1);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() - 2 >= 1 && position.getColumn() + 1 <= 8) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() - 2, position.getColumn() + 1);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() + 1 <= 8 && position.getColumn() + 2 <= 8) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() + 1, position.getColumn() + 2);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() + 1 <= 8 && position.getColumn() - 2 >= 1) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() + 1, position.getColumn() - 2);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() - 1 >= 1 && position.getColumn() - 2 >= 1) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() - 1, position.getColumn() - 2);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() - 1 >= 1 && position.getColumn() + 2 <= 8) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() - 1, position.getColumn() + 2);
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         return returnMoves;
     }
@@ -195,28 +200,28 @@ public class ChessMoveCalculator {
         boolean pieceBlocking = false;
         while (position.getRow() + i <= 8 && position.getColumn() + i <= 8 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() + i, position.getColumn() + i);
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         i = 1;
         pieceBlocking = false;
         while (position.getRow() - i >= 1 && position.getColumn() + i <= 8 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() - i, position.getColumn() + i);
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         i = 1;
         pieceBlocking = false;
         while (position.getRow() + i <= 8 && position.getColumn() - i >= 1 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() + i, position.getColumn() - i);
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         i = 1;
         pieceBlocking = false;
         while (position.getRow() - i >= 1 && position.getColumn() - i >= 1 && !pieceBlocking) {
             ChessPosition incrementingPosition = new ChessPosition(position.getRow() - i, position.getColumn() - i);
-            pieceBlocking = checkSquare(returnMoves, incrementingPosition);
+            pieceBlocking = hasPieceInSquare(returnMoves, incrementingPosition);
             i++;
         }
         return returnMoves;
@@ -226,35 +231,35 @@ public class ChessMoveCalculator {
         List<ChessMove> returnMoves = new ArrayList<>();
         if (position.getRow() + 1 <= 8) {
             ChessPosition oneOfEight = new ChessPosition(position.getRow() + 1, position.getColumn());
-            checkSquare(returnMoves,oneOfEight);
+            hasPieceInSquare(returnMoves,oneOfEight);
         }
         if (position.getRow() + 1 <= 8 && position.getColumn() + 1 <= 8) {
             ChessPosition twoOfEight = new ChessPosition(position.getRow() + 1, position.getColumn() + 1);
-            checkSquare(returnMoves,twoOfEight);
+            hasPieceInSquare(returnMoves,twoOfEight);
         }
         if (position.getColumn() + 1 <= 8) {
             ChessPosition threeOfEight = new ChessPosition(position.getRow(), position.getColumn() + 1);
-            checkSquare(returnMoves,threeOfEight);
+            hasPieceInSquare(returnMoves,threeOfEight);
         }
         if (position.getRow() - 1 >= 1 && position.getColumn() + 1 <= 8) {
             ChessPosition fourOfEight = new ChessPosition(position.getRow() - 1, position.getColumn() + 1);
-            checkSquare(returnMoves,fourOfEight);
+            hasPieceInSquare(returnMoves,fourOfEight);
         }
         if (position.getRow() - 1 >= 1) {
             ChessPosition fiveOfEight = new ChessPosition(position.getRow() - 1, position.getColumn());
-            checkSquare(returnMoves,fiveOfEight);
+            hasPieceInSquare(returnMoves,fiveOfEight);
         }
         if (position.getRow() - 1 >= 1 && position.getColumn() - 1 >= 1) {
             ChessPosition sixOfEight = new ChessPosition(position.getRow() - 1, position.getColumn() - 1);
-            checkSquare(returnMoves,sixOfEight);
+            hasPieceInSquare(returnMoves,sixOfEight);
         }
         if (position.getColumn() - 1 >= 1) {
             ChessPosition sevenOfEight = new ChessPosition(position.getRow(), position.getColumn() - 1);
-            checkSquare(returnMoves,sevenOfEight);
+            hasPieceInSquare(returnMoves,sevenOfEight);
         }
         if (position.getRow() + 1 <= 8 && position.getColumn() - 1 >= 1) {
             ChessPosition eightOfEight = new ChessPosition(position.getRow() + 1, position.getColumn() - 1);
-            checkSquare(returnMoves,eightOfEight);
+            hasPieceInSquare(returnMoves,eightOfEight);
         }
         return returnMoves;
     }
