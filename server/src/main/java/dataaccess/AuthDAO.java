@@ -1,7 +1,6 @@
 package dataaccess;
 
-import model.*;
-import model.*;
+import model.AuthData;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +9,7 @@ import java.util.Set;
 
 public class AuthDAO {
 
-    static Set<AuthData> setOfAuthTokens = new HashSet<>();
+    static Set<AuthData> SetOfAuthData = new HashSet<>();
     static Map<String, AuthData> authTokenToAuthData = new HashMap<>();
 
     public AuthData getAuth(String authToken) {
@@ -18,12 +17,12 @@ public class AuthDAO {
     }
 
     public void createAuth(AuthData authData) {
-        setOfAuthTokens.add(authData);
+        SetOfAuthData.add(authData);
         authTokenToAuthData.put(authData.authToken(), authData);
     }
 
     public void clear() {
-        setOfAuthTokens.clear();
+        SetOfAuthData.clear();
         authTokenToAuthData.clear();
     }
 }

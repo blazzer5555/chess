@@ -1,14 +1,11 @@
 package server;
 
-import com.google.gson.JsonObject;
 import dataaccess.*;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import model.*;
 import org.jetbrains.annotations.NotNull;
 import service.RegisterService;
-
-import javax.xml.crypto.Data;
 
 public class RegisterHandler implements Handler {
     @Override
