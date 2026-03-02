@@ -1,13 +1,14 @@
 package server;
 
+import dataaccess.*;
 import io.javalin.*;
 
 public class Server {
 
     private final Javalin javalin;
-    private ClearHandler clearer = new ClearHandler();
+    private final ClearHandler clearer = new ClearHandler();
     private final CreateGameHandler gameCreater = new CreateGameHandler();
-    private JoinGameHandler gameJoiner = new JoinGameHandler();
+    private final JoinGameHandler gameJoiner = new JoinGameHandler();
     private final ListGamesHandler lister = new ListGamesHandler();
     private final LoginHandler loggerIn = new LoginHandler();
     private final LogoutHandler loggerOut = new LogoutHandler();
@@ -22,7 +23,6 @@ public class Server {
         javalin.post("/game", gameCreater);
         javalin.put("/game", gameJoiner);
         javalin.delete("/db", clearer);
-
     }
 
     public int run(int desiredPort) {

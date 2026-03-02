@@ -10,19 +10,19 @@ import java.util.Set;
 
 public class UserDAO {
 
-    Set<UserData> setOfUsers = new HashSet<>();
-    Map<String, UserData> usernameToUserData = new HashMap<>();
+    static Set<UserData> setOfUsers = new HashSet<>();
+    static Map<String, UserData> usernameToUserData = new HashMap<>();
 
-    UserData getUser(String username) {
+    public UserData getUser(String username) {
         return usernameToUserData.getOrDefault(username, null);
     }
 
-    void createUser(UserData userData) {
+    public void createUser(UserData userData) {
         setOfUsers.add(userData);
         usernameToUserData.put(userData.username(), userData);
     }
 
-    void clear() {
+    public void clear() {
         setOfUsers.clear();
         usernameToUserData.clear();
     }
