@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
+import server.JoinGameRequest;
 
 import java.util.*;
 import java.util.Random;
@@ -42,8 +43,24 @@ public class GameDAO {
         return new ArrayList<>(setOfGameData);
     }
 
-    public void updateGame() {
-
+    public void updateGame(JoinGameRequest request, String authToken) {
+        AuthDAO authDAO = new AuthDAO();
+        GameData gameToUpdate = gameIDToGameData.get(request.gameID());
+        setOfGameData.remove(gameToUpdate);
+        gameIDToGameData.remove(request.gameID());
+        gameNameToGameData.remove(gameToUpdate.gameName());
+        GameData updatedGame;
+        if (Objects.equals(request.playerColor(), "WHITE")) {
+            updatedGame = new GameData(gameToUpdate.gameID(), authDAO.getAuthByAuthToken(authToken).username(),
+                    gameToUpdate.blackUsername(), gameToUpdate.gameName(),
+                    gameToUpdate.game());
+        }
+        else {
+            updatedGame = new GameData(gameToUpdate.gameID(), gameToUpdate.whiteUsername(),
+                    authDAO.getAuthByAuthToken(authToken).username(),
+                    gameToUpdate.gameName(), gameToUpdate.game());
+        }
+        updateDataStructures(updatedGame);
     }
 
     public void clear() {
@@ -51,5 +68,11 @@ public class GameDAO {
         gameIDToGameData.clear();
         gameNameToGameData.clear();
         setOfUsedIDs.clear();
+    }
+
+    private void updateDataStructures(GameData updatedGame) {
+        setOfGameData.add(updatedGame);
+        gameIDToGameData.put(updatedGame.gameID(), updatedGame);
+        gameNameToGameData.put(updatedGame.gameName(), updatedGame);
     }
 }
