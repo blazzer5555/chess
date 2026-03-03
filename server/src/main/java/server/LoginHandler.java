@@ -20,9 +20,9 @@ public class LoginHandler implements Handler {
             else {
                 if (loginService.isValidPassword(userData, loginRequest)) {
                     AuthData authData = loginService.logInUser(userData);
-                    record LoginResponseRecord(String username, String authToken) { }
+                    record LoginResponse(String username, String authToken) { }
                     context.status(200);
-                    LoginResponseRecord response = new LoginResponseRecord(userData.username(),
+                    LoginResponse response = new LoginResponse(userData.username(),
                             authData.authToken());
                     context.json(response);
                 }

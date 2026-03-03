@@ -12,6 +12,8 @@ public class LogoutHandler implements Handler {
         String authToken = context.header("authorization");
         if (logoutService.isUserLoggedIn(authToken)) {
             logoutService.logOutUser(authToken);
+            context.status(200);
+            context.json("");
         }
         else {
             context.status(401);
