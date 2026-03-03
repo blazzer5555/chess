@@ -10,7 +10,7 @@ public class LogoutHandler implements Handler {
     public void handle(@NotNull Context context) {
         LogoutService logoutService = new LogoutService();
         String authToken = context.header("authorization");
-        if (logoutService.isUserLoggedIn(authToken)) {
+        if (logoutService.userIsLoggedIn(authToken)) {
             logoutService.logOutUser(authToken);
             context.status(200);
             context.json("");

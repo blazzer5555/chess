@@ -8,7 +8,7 @@ import java.util.List;
 
 public class ListGamesService {
 
-    public boolean isUserLoggedIn(String authToken) {
+    public boolean userIsLoggedIn(String authToken) {
         AuthDAO authDAO = new AuthDAO();
         return authDAO.getAuthByAuthToken(authToken) != null;
     }

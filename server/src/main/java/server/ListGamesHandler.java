@@ -14,10 +14,16 @@ public class ListGamesHandler implements Handler {
     public void handle(@NotNull Context context) {
         ListGamesService lister = new ListGamesService();
         String authToken = context.header("authorization");
-        if (lister.isUserLoggedIn(authToken)) {
+        if (lister.userIsLoggedIn(authToken)) {
             List<GameData> listOfCurrentGames = lister.listCurrentGames();
-            record ListResponse(List<GameData> games) { }
-            ListResponse response = new ListResponse(listOfCurrentGames);
+            record NeededGameInfo(int ID, String whiteUsername, String blackUsername, String gameName) { }
+            record ListResponse(List<NeededGameInfo> games) { }
+            ListResponse response = new ListResponse(new ArrayList<>());
+            for (GameData game: listOfCurrentGames) {
+                NeededGameInfo temp = new NeededGameInfo(game.gameID(), game.whiteUsername(),
+                                                         game.blackUsername(), game.gameName());
+                response.games.add(temp);
+            }
             context.status(200);
             context.json(response);
         }
