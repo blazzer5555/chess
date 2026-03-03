@@ -11,18 +11,25 @@ public class AuthDAO {
 
     static Set<AuthData> SetOfAuthData = new HashSet<>();
     static Map<String, AuthData> authTokenToAuthData = new HashMap<>();
+    static Map<String, AuthData> usernameToAuthData = new HashMap<>();
 
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuthByAuthToken(String authToken) {
         return authTokenToAuthData.getOrDefault(authToken, null);
     }
 
-    public void createAuth(AuthData authData) {
+    public AuthData getAuthByUsername(String username) {
+        return usernameToAuthData.getOrDefault(username, null);
+    }
+
+    public void addAuth(AuthData authData) {
         SetOfAuthData.add(authData);
         authTokenToAuthData.put(authData.authToken(), authData);
+        usernameToAuthData.put(authData.username(), authData);
     }
 
     public void clear() {
         SetOfAuthData.clear();
         authTokenToAuthData.clear();
+        usernameToAuthData.clear();
     }
 }

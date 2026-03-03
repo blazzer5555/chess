@@ -17,7 +17,7 @@ public class RegisterService {
             userDAO.createUser(userData);
             String authToken = UUID.randomUUID().toString();
             AuthData authData = new AuthData(authToken, userData.username());
-            authDAO.createAuth(authData);
+            authDAO.addAuth(authData);
             return authData;
         }
     }
