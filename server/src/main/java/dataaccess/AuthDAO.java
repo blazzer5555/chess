@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class AuthDAO {
 
-    static Set<AuthData> SetOfAuthData = new HashSet<>();
+    static Set<AuthData> setOfAuthData = new HashSet<>();
     static Map<String, AuthData> authTokenToAuthData = new HashMap<>();
     static Map<String, AuthData> usernameToAuthData = new HashMap<>();
 
@@ -22,13 +22,19 @@ public class AuthDAO {
     }
 
     public void addAuth(AuthData authData) {
-        SetOfAuthData.add(authData);
+        setOfAuthData.add(authData);
         authTokenToAuthData.put(authData.authToken(), authData);
         usernameToAuthData.put(authData.username(), authData);
     }
 
+    public void deleteAuth(AuthData authData) {
+        setOfAuthData.remove(authData);
+        authTokenToAuthData.remove(authData.authToken());
+        usernameToAuthData.remove(authData.username());
+    }
+
     public void clear() {
-        SetOfAuthData.clear();
+        setOfAuthData.clear();
         authTokenToAuthData.clear();
         usernameToAuthData.clear();
     }
