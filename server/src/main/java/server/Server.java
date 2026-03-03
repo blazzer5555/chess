@@ -6,22 +6,22 @@ import io.javalin.*;
 public class Server {
 
     private final Javalin javalin;
-    private final ClearHandler clearer = new ClearHandler();
-    private final CreateGameHandler gameCreater = new CreateGameHandler();
-    private final JoinGameHandler gameJoiner = new JoinGameHandler();
-    private final ListGamesHandler lister = new ListGamesHandler();
-    private final LoginHandler loggerIn = new LoginHandler();
-    private final LogoutHandler loggerOut = new LogoutHandler();
-    private final RegisterHandler registerer = new RegisterHandler();
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        RegisterHandler registerer = new RegisterHandler();
         javalin.post("/user", registerer);
+        LoginHandler loggerIn = new LoginHandler();
         javalin.post("/session", loggerIn);
+        LogoutHandler loggerOut = new LogoutHandler();
         javalin.delete("/session", loggerOut);
+        ListGamesHandler lister = new ListGamesHandler();
         javalin.get("/game", lister);
+        CreateGameHandler gameCreater = new CreateGameHandler();
         javalin.post("/game", gameCreater);
+        JoinGameHandler gameJoiner = new JoinGameHandler();
         javalin.put("/game", gameJoiner);
+        ClearHandler clearer = new ClearHandler();
         javalin.delete("/db", clearer);
     }
 
