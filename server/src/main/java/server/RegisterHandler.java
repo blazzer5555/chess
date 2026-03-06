@@ -19,10 +19,8 @@ public class RegisterHandler implements Handler {
         }
         RegisterService registerer = new RegisterService();
         if (registerer.userAlreadyInDatabase(userData.username())) {
-            context.status(403);
-            record UserAlreadyTakenResponse(String message) { }
-            UserAlreadyTakenResponse response = new UserAlreadyTakenResponse("Error: already taken");
-            context.result(gson.toJson(response));
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleAlreadyTaken(context, gson);
         }
         else {
             AuthData newAuthData = registerer.registerUser(userData);

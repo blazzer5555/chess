@@ -40,10 +40,8 @@ public class JoinGameHandler implements Handler {
                 joiner.joinGame(request, authToken);
             }
             else {
-                context.status(403);
-                record AlreadyTakenResponse(String message) { }
-                AlreadyTakenResponse response = new AlreadyTakenResponse("Error: already taken");
-                context.result(gson.toJson(response));
+                ErrorResponder responder = new ErrorResponder();
+                responder.handleAlreadyTaken(context, gson);
             }
         }
         else {

@@ -18,4 +18,10 @@ public class ErrorResponder {
         ResponseMessage response = new ResponseMessage("Error: unauthorized");
         context.result(gson.toJson(response));
     }
+
+    public void handleAlreadyTaken(Context context, Gson gson) {
+        context.status(403);
+        ResponseMessage response = new ResponseMessage("Error: already taken");
+        context.result(gson.toJson(response));
+    }
 }
