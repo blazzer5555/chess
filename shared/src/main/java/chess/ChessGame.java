@@ -13,19 +13,19 @@ import java.util.Objects;
  */
 public class ChessGame {
     private ChessBoard board;
-    private TeamColor player_turn;
+    private TeamColor playerTurn;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
-        player_turn = TeamColor.WHITE;
+        playerTurn = TeamColor.WHITE;
     }
 
     /**
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        return player_turn;
+        return playerTurn;
     }
 
     /**
@@ -34,7 +34,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        player_turn = team;
+        playerTurn = team;
     }
 
     /**
@@ -84,7 +84,7 @@ public class ChessGame {
         if (pieceToMove == null) {
             throw new InvalidMoveException("There is no piece at that location");
         }
-        if (pieceToMove.getTeamColor() != player_turn) {
+        if (pieceToMove.getTeamColor() != playerTurn) {
             throw  new InvalidMoveException("It is not this piece's turn");
         }
         Collection<ChessMove> possibleMoves = validMoves(move.getStartPosition());
@@ -98,11 +98,11 @@ public class ChessGame {
                     board.addPiece(move.getEndPosition(), pieceToMove);
                 }
                 board.addPiece(move.getStartPosition(), null);
-                if (player_turn == TeamColor.WHITE) {
-                    player_turn = TeamColor.BLACK;
+                if (playerTurn == TeamColor.WHITE) {
+                    playerTurn = TeamColor.BLACK;
                 }
                 else {
-                    player_turn = TeamColor.WHITE;
+                    playerTurn = TeamColor.WHITE;
                 }
                 return;
             }
@@ -154,7 +154,8 @@ public class ChessGame {
             for (int col = 0; col < 8; col++) {
                 ChessPosition position = new ChessPosition(row + 1, col + 1);
                 if (board.getPiece(position) != null) {
-                    if (board.getPiece(position).getTeamColor() == teamColor & board.getPiece(position).getPieceType() == ChessPiece.PieceType.KING) {
+                    if (board.getPiece(position).getTeamColor() == teamColor &
+                            board.getPiece(position).getPieceType() == ChessPiece.PieceType.KING) {
                         return position;
                     }
                 }
@@ -233,11 +234,11 @@ public class ChessGame {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return Objects.equals(board, chessGame.board) && player_turn == chessGame.player_turn;
+        return Objects.equals(board, chessGame.board) && playerTurn == chessGame.playerTurn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(board, player_turn);
+        return Objects.hash(board, playerTurn);
     }
 }

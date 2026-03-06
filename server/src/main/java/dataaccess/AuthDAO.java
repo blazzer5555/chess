@@ -16,10 +16,6 @@ public class AuthDAO {
         return authTokenToAuthData.getOrDefault(authToken, null);
     }
 
-    public AuthData getAuthByUsername(String username) {
-        return usernameToAuthData.getOrDefault(username, null);
-    }
-
     public void addAuth(AuthData authData) {
         authTokenToAuthData.put(authData.authToken(), authData);
         usernameToAuthData.put(authData.username(), authData);

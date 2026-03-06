@@ -13,9 +13,9 @@ public class JoinGameService {
         return authDAO.getAuthByAuthToken(authToken) != null;
     }
 
-    public boolean gameExists(int ID) {
+    public boolean gameExists(int gameID) {
         GameDAO gameDAO = new GameDAO();
-        return gameDAO.getGameByID(ID) != null;
+        return gameDAO.getGameByID(gameID) != null;
     }
 
     public boolean isInvalidColor(String color) {
