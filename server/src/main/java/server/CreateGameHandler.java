@@ -12,7 +12,7 @@ public class CreateGameHandler implements Handler {
         String authToken = context.header("authorization");
         if (creater.userIsLoggedIn(authToken)) {
             CreateGameRequest request = context.bodyAsClass(CreateGameRequest.class);
-            if (creater.gameNameIsTaken(request.gameName())) {
+            if  (request.gameName() == null | creater.gameNameIsTaken(request.gameName())) {
                 context.status(400);
                 record BadRequestResponse(String message) { }
                 BadRequestResponse response = new BadRequestResponse("Error: bad request");
@@ -21,7 +21,7 @@ public class CreateGameHandler implements Handler {
             else {
                 int newID = creater.createGame(request.gameName());
                 context.status(200);
-                record SuccessfullyCreatedResponse(int ID) { }
+                record SuccessfullyCreatedResponse(int gameID) { }
                 SuccessfullyCreatedResponse response = new SuccessfullyCreatedResponse(newID);
                 context.json(response);
             }
