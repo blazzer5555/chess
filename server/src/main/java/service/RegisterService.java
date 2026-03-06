@@ -7,18 +7,18 @@ import model.*;
 
 public class RegisterService {
 
-    public AuthData registerUser(UserData userData) throws DataAccessException{
+    public boolean userAlreadyInDatabase(String username) {
+        UserDAO userDAO = new UserDAO();
+        return userDAO.getUser(username) != null;
+    }
+
+    public AuthData registerUser(UserData userData) {
         UserDAO userDAO = new UserDAO();
         AuthDAO authDAO = new AuthDAO();
-        if (userDAO.getUser(userData.username()) != null) {
-            throw new DataAccessException("");
-        }
-        else {
-            userDAO.createUser(userData);
-            String authToken = UUID.randomUUID().toString();
-            AuthData authData = new AuthData(authToken, userData.username());
-            authDAO.addAuth(authData);
-            return authData;
-        }
+        userDAO.createUser(userData);
+        String authToken = UUID.randomUUID().toString();
+        AuthData authData = new AuthData(authToken, userData.username());
+        authDAO.addAuth(authData);
+        return authData;
     }
 }

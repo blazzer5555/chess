@@ -26,9 +26,4 @@ public class LoginService {
     public boolean isValidPassword(UserData userData, LoginRequest loginrequest) {
         return Objects.equals(userData.password(), loginrequest.password());
     }
-
-    public boolean isAlreadyLoggedIn(UserData userData) {
-        AuthDAO authDAO = new AuthDAO();
-        return authDAO.getAuthByUsername(userData.username()) != null;
-    }
 }

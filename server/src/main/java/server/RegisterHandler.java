@@ -12,18 +12,17 @@ public class RegisterHandler implements Handler {
     public void handle(@NotNull Context context) {
         UserData userData = context.bodyAsClass(UserData.class);
         RegisterService registerer = new RegisterService();
-        try {
-            AuthData newAuthData = registerer.registerUser(userData);
-            context.status(200);
-            record RegisterResponseRecord(String username, String authToken) { }
-            RegisterResponseRecord response = new RegisterResponseRecord(userData.username(),
-                                                                         newAuthData.authToken());
-            context.json(response);
-        }
-        catch (DataAccessException e){
+        if (registerer.userAlreadyInDatabase(userData.username())) {
             context.status(403);
             record UserAlreadyTakenResponse(String message) { }
             UserAlreadyTakenResponse response = new UserAlreadyTakenResponse("Error: already taken");
+            context.json(response);
+        }
+        else {
+            AuthData newAuthToken = registerer.registerUser(userData);
+            record SuccessfulRegisterResponse(String authToken) { }
+            SuccessfulRegisterResponse response = new SuccessfulRegisterResponse(newAuthToken.authToken());
+            context.status(200);
             context.json(response);
         }
     }

@@ -10,7 +10,6 @@ import java.util.Set;
 
 public class UserDAO {
 
-    static Set<UserData> setOfUsers = new HashSet<>();
     static Map<String, UserData> usernameToUserData = new HashMap<>();
 
     public UserData getUser(String username) {
@@ -18,12 +17,10 @@ public class UserDAO {
     }
 
     public void createUser(UserData userData) {
-        setOfUsers.add(userData);
         usernameToUserData.put(userData.username(), userData);
     }
 
     public void clear() {
-        setOfUsers.clear();
         usernameToUserData.clear();
     }
 }
