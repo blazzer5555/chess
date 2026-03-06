@@ -27,13 +27,13 @@ public class JoinGameService {
         }
     }
 
-    public boolean colorAvailable(String color, int ID) {
+    public boolean colorAvailable(String color, int gameID) {
         GameDAO gameDAO = new GameDAO();
         if (Objects.equals(color, "WHITE")) {
-            return gameDAO.getGameByID(ID).whiteUsername() == null;
+            return gameDAO.getGameByID(gameID).whiteUsername() == null;
         }
         else {
-            return gameDAO.getGameByID(ID).blackUsername() == null;
+            return gameDAO.getGameByID(gameID).blackUsername() == null;
         }
     }
 
