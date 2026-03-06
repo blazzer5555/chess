@@ -15,10 +15,8 @@ public class LoginHandler implements Handler {
         LoginRequest loginRequest = gson.fromJson(context.body(), LoginRequest.class);
         LoginService loginService = new LoginService();
         if (loginRequest.username() == null | loginRequest.password() == null) {
-            context.status(400);
-            record BadRequestResponse(String message) { }
-            BadRequestResponse response = new BadRequestResponse("Error: bad request");
-            context.result(gson.toJson(response));
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleBadRequest(context, gson);
             return;
         }
         UserData userData = loginService.getUser(loginRequest);
@@ -42,9 +40,7 @@ public class LoginHandler implements Handler {
 
     private void createUnauthorizedResponse(Context context) {
         Gson gson = new Gson();
-        context.status(401);
-        record UnauthorizedResponse(String message) { }
-        UnauthorizedResponse response = new UnauthorizedResponse("Error: unauthorized");
-        context.result(gson.toJson(response));
+        ErrorResponder responder = new ErrorResponder();
+        responder.handleUnauthorized(context, gson);
     }
 }

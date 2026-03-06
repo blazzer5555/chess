@@ -15,10 +15,8 @@ public class CreateGameHandler implements Handler {
         String authToken = context.header("authorization");
         if (creater.userIsLoggedIn(authToken)) {
             if  (request.gameName() == null | creater.gameNameIsTaken(request.gameName())) {
-                context.status(400);
-                record BadRequestResponse(String message) { }
-                BadRequestResponse response = new BadRequestResponse("Error: bad request");
-                context.result(gson.toJson(response));
+                ErrorResponder responder = new ErrorResponder();
+                responder.handleBadRequest(context, gson);
             }
             else {
                 int newID = creater.createGame(request.gameName());
@@ -29,10 +27,8 @@ public class CreateGameHandler implements Handler {
             }
         }
         else {
-            context.status(401);
-            record UnauthorizedResponse(String message) { }
-            UnauthorizedResponse response = new UnauthorizedResponse("Error: unauthorized");
-            context.result(gson.toJson(response));
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleUnauthorized(context, gson);
         }
     }
 }

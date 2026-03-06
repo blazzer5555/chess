@@ -18,10 +18,8 @@ public class LogoutHandler implements Handler {
             context.json("");
         }
         else {
-            context.status(401);
-            record UnauthorizedResponse(String message) { }
-            UnauthorizedResponse response = new UnauthorizedResponse("Error: unauthorized");
-            context.result(gson.toJson(response));
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleUnauthorized(context, gson);
         }
     }
 }

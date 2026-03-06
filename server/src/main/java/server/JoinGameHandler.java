@@ -22,19 +22,15 @@ public class JoinGameHandler implements Handler {
             }
         }
         else {
-            context.status(401);
-            record UnauthorizedResponse(String message) { }
-            UnauthorizedResponse response = new UnauthorizedResponse("Error: unauthorized");
-            context.result(gson.toJson(response));
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleUnauthorized(context, gson);
         }
     }
 
     private void createBadRequestResponse(Context context) {
         Gson gson = new Gson();
-        context.status(400);
-        record BadRequestResponse(String message) { }
-        BadRequestResponse response = new BadRequestResponse("Error: bad request");
-        context.result(gson.toJson(response));
+        ErrorResponder responder = new ErrorResponder();
+        responder.handleBadRequest(context, gson);
     }
 
     private void checkForValidSlot(JoinGameService joiner, Context context, JoinGameRequest request, String authToken) {

@@ -13,10 +13,8 @@ public class RegisterHandler implements Handler {
         Gson gson = new Gson();
         UserData userData = gson.fromJson(context.body(), UserData.class);
         if (userData.password() == null | userData.username() == null | userData.email() == null) {
-            context.status(400);
-            record BadRequestResponse(String message) { }
-            BadRequestResponse response = new BadRequestResponse("Error: bad request");
-            context.result(gson.toJson(response));
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleBadRequest(context, gson);
             return;
         }
         RegisterService registerer = new RegisterService();
