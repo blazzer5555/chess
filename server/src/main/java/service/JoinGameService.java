@@ -19,7 +19,12 @@ public class JoinGameService {
     }
 
     public boolean isInvalidColor(String color) {
-        return !color.equals("WHITE") & !color.equals("BLACK");
+        if (color == null) {
+            return true;
+        }
+        else {
+            return !color.equals("WHITE") & !color.equals("BLACK");
+        }
     }
 
     public boolean colorAvailable(String color, int ID) {
