@@ -6,17 +6,19 @@ import model.AuthData;
 import model.UserData;
 import org.jetbrains.annotations.NotNull;
 import service.LoginService;
+import com.google.gson.Gson;
 
 public class LoginHandler implements Handler {
     @Override
     public void handle(@NotNull Context context) {
-        LoginRequest loginRequest = context.bodyAsClass(LoginRequest.class);
+        Gson gson = new Gson();
+        LoginRequest loginRequest = gson.fromJson(context.body(), LoginRequest.class);
         LoginService loginService = new LoginService();
         if (loginRequest.username() == null | loginRequest.password() == null) {
             context.status(400);
             record BadRequestResponse(String message) { }
             BadRequestResponse response = new BadRequestResponse("Error: bad request");
-            context.json(response);
+            context.result(gson.toJson(response));
             return;
         }
         UserData userData = loginService.getUser(loginRequest);
@@ -27,7 +29,7 @@ public class LoginHandler implements Handler {
                 context.status(200);
                 LoginResponse response = new LoginResponse(userData.username(),
                         authData.authToken());
-                context.json(response);
+                context.result(gson.toJson(response));
             }
             else {
                 createUnauthorizedResponse(context);
@@ -39,9 +41,10 @@ public class LoginHandler implements Handler {
     }
 
     private void createUnauthorizedResponse(Context context) {
+        Gson gson = new Gson();
         context.status(401);
         record UnauthorizedResponse(String message) { }
         UnauthorizedResponse response = new UnauthorizedResponse("Error: unauthorized");
-        context.json(response);
+        context.result(gson.toJson(response));
     }
 }

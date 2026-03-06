@@ -5,13 +5,14 @@ import io.javalin.http.Handler;
 import model.GameData;
 import org.jetbrains.annotations.NotNull;
 import service.ListGamesService;
-
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ListGamesHandler implements Handler {
     @Override
     public void handle(@NotNull Context context) {
+        Gson gson = new Gson();
         ListGamesService lister = new ListGamesService();
         String authToken = context.header("authorization");
         if (lister.userIsLoggedIn(authToken)) {
@@ -25,13 +26,13 @@ public class ListGamesHandler implements Handler {
                 response.games.add(temp);
             }
             context.status(200);
-            context.json(response);
+            context.result(gson.toJson(response));
         }
         else {
             context.status(401);
             record UnauthorizedResponse(String message) { }
             UnauthorizedResponse response = new UnauthorizedResponse("Error: unauthorized");
-            context.json(response);
+            context.result(gson.toJson(response));
         }
     }
 }
