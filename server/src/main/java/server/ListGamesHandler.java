@@ -16,7 +16,7 @@ public class ListGamesHandler implements Handler {
         String authToken = context.header("authorization");
         if (lister.userIsLoggedIn(authToken)) {
             List<GameData> listOfCurrentGames = lister.listCurrentGames();
-            record NeededGameInfo(int ID, String whiteUsername, String blackUsername, String gameName) { }
+            record NeededGameInfo(int gameID, String whiteUsername, String blackUsername, String gameName) { }
             record ListResponse(List<NeededGameInfo> games) { }
             ListResponse response = new ListResponse(new ArrayList<>());
             for (GameData game: listOfCurrentGames) {
