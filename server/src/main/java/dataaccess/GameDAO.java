@@ -17,22 +17,22 @@ public class GameDAO {
     public int createGame(String gameName) {
         boolean isUniqueID = false;
         Random rand = new Random();
-        int ID = 0;
+        int gameID = 0;
         while(!isUniqueID) {
-            ID = rand.nextInt(0,1001);
-            if (!setOfUsedIDs.contains(ID)) {
+            gameID = rand.nextInt(0,1001);
+            if (!setOfUsedIDs.contains(gameID)) {
                 isUniqueID = true;
             }
         }
-        GameData newGame = new GameData(ID, null, null, gameName, new ChessGame());
+        GameData newGame = new GameData(gameID, null, null, gameName, new ChessGame());
         setOfGameData.add(newGame);
-        gameIDToGameData.put(ID, newGame);
+        gameIDToGameData.put(gameID, newGame);
         gameNameToGameData.put(gameName, newGame);
-        return ID;
+        return gameID;
     }
 
-    public GameData getGameByID(int ID) {
-        return gameIDToGameData.getOrDefault(ID, null);
+    public GameData getGameByID(int gameID) {
+        return gameIDToGameData.getOrDefault(gameID, null);
     }
 
     public GameData getGameByName(String name) {
