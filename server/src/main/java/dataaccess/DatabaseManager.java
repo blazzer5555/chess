@@ -9,11 +9,7 @@ public class DatabaseManager {
     private static String dbPassword;
     private static String connectionUrl;
     private static final String[] createStatements = {
-            """
-            create table if not exists gamedata(
-                id integer not null primary key auto_increment,
-                gamedata varchar(10000) not null
-            )""",
+            "CREATE TABLE IF NOT EXISTS gamedata(id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, gamedata VARCHAR(10000) NOT NULL)",
             """
             create table if not exists gamename(
                 gamename varchar(255) not null primary key,
@@ -58,6 +54,7 @@ public class DatabaseManager {
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
+            conn.setCatalog("chessdatabase");
             for (String createStatement: createStatements) {
                 try (var preparedCreateStatement = conn.prepareStatement(createStatement)) {
                     preparedCreateStatement.executeUpdate();
