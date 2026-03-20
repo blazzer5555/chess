@@ -8,70 +8,45 @@ import java.util.*;
 
 public class DatabaseGameDAO {
 
-    static Set<GameData> setOfGameData = new HashSet<>();
-    static Set<Integer> setOfUsedIDs = new HashSet<>();
-    static Map<Integer, GameData> gameIDToGameData = new HashMap<>();
-    static Map<String, GameData> gameNameToGameData = new HashMap<>();
+    private static final String[] deletionStatements = {
+            "DELETE FROM gamename",
+            "DELETE FROM gamedata"
+        };
 
     public int createGame(String gameName) {
-        boolean isUniqueID = false;
-        Random rand = new Random();
-        int gameID = 0;
-        while(!isUniqueID) {
-            gameID = rand.nextInt(0,1001);
-            if (!setOfUsedIDs.contains(gameID)) {
-                isUniqueID = true;
-            }
-        }
-        GameData newGame = new GameData(gameID, null, null, gameName, new ChessGame());
-        setOfGameData.add(newGame);
-        gameIDToGameData.put(gameID, newGame);
-        gameNameToGameData.put(gameName, newGame);
-        return gameID;
+        return 0;
     }
 
     public GameData getGameByID(int gameID) {
-        return gameIDToGameData.getOrDefault(gameID, null);
+        return null;
     }
 
     public GameData getGameByName(String name) {
-        return gameNameToGameData.getOrDefault(name, null);
+        return null;
     }
 
     public List<GameData> listGames() {
-        return new ArrayList<>(setOfGameData);
+        return null;
     }
 
     public void updateGame(JoinGameRequest request, String authToken) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
-        GameData gameToUpdate = gameIDToGameData.get(request.gameID());
-        setOfGameData.remove(gameToUpdate);
-        gameIDToGameData.remove(request.gameID());
-        gameNameToGameData.remove(gameToUpdate.gameName());
-        GameData updatedGame;
-        if (Objects.equals(request.playerColor(), "WHITE")) {
-            updatedGame = new GameData(gameToUpdate.gameID(), authDAO.getAuthByAuthToken(authToken).username(),
-                    gameToUpdate.blackUsername(), gameToUpdate.gameName(),
-                    gameToUpdate.game());
-        }
-        else {
-            updatedGame = new GameData(gameToUpdate.gameID(), gameToUpdate.whiteUsername(),
-                    authDAO.getAuthByAuthToken(authToken).username(),
-                    gameToUpdate.gameName(), gameToUpdate.game());
-        }
-        updateDataStructures(updatedGame);
+        return;
     }
 
     public void clear() {
-        setOfGameData.clear();
-        gameIDToGameData.clear();
-        gameNameToGameData.clear();
-        setOfUsedIDs.clear();
+        try (var conn = DatabaseManager.getConnection()) {
+            for (String statement: deletionStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Could not clear the database.");
+        }
     }
 
     private void updateDataStructures(GameData updatedGame) {
-        setOfGameData.add(updatedGame);
-        gameIDToGameData.put(updatedGame.gameID(), updatedGame);
-        gameNameToGameData.put(updatedGame.gameName(), updatedGame);
+        return;
     }
 }

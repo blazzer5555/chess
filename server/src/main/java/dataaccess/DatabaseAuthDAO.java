@@ -7,25 +7,31 @@ import java.util.Map;
 
 public class DatabaseAuthDAO {
 
-    static Map<String, AuthData> authTokenToAuthData = new HashMap<>();
-    static Map<String, AuthData> usernameToAuthData = new HashMap<>();
+    private static final String[] deletionStatements = {
+            "DELETE FROM authtoken",
+            "DELETE FROM authdata"
+        };
 
     public AuthData getAuthByAuthToken(String authToken) {
-        return authTokenToAuthData.getOrDefault(authToken, null);
+        return null;
     }
 
     public void addAuth(AuthData authData) {
-        authTokenToAuthData.put(authData.authToken(), authData);
-        usernameToAuthData.put(authData.username(), authData);
     }
 
     public void deleteAuth(AuthData authData) {
-        authTokenToAuthData.remove(authData.authToken());
-        usernameToAuthData.remove(authData.username());
     }
 
     public void clear() {
-        authTokenToAuthData.clear();
-        usernameToAuthData.clear();
+        try (var conn = DatabaseManager.getConnection()) {
+            for (String statement: deletionStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Could not clear the database.");
+        }
     }
 }

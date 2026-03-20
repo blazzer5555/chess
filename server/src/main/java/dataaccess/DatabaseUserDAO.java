@@ -2,23 +2,36 @@ package dataaccess;
 
 import model.UserData;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class DatabaseUserDAO {
 
-    static Map<String, UserData> usernameToUserData = new HashMap<>();
+    private static final String[] deletionStatements = {
+            "DELETE FROM username",
+            "DELETE FROM userdata"
+        };
 
     public UserData getUser(String username) {
-        return usernameToUserData.getOrDefault(username, null);
+        return null;
     }
 
     public void createUser(UserData userData) {
-        usernameToUserData.put(userData.username(), userData);
+        return;
     }
 
     public void clear() {
-        usernameToUserData.clear();
+        try (var conn = DatabaseManager.getConnection()) {
+            for (String statement: deletionStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Could not clear the database.");
+        }
     }
 }
