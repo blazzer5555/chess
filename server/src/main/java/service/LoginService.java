@@ -4,14 +4,13 @@ import dataaccess.*;
 import model.*;
 import server.LoginRequest;
 
-import javax.xml.crypto.Data;
 import java.util.Objects;
 import java.util.UUID;
 
 public class LoginService {
 
     public AuthData logInUser(UserData userData) {
-        AuthDAO authDAO = new AuthDAO();
+        MemoryAuthDAO authDAO = new MemoryAuthDAO();
         String authToken = UUID.randomUUID().toString();
         AuthData authData = new AuthData(authToken, userData.username());
         authDAO.addAuth(authData);
@@ -19,7 +18,7 @@ public class LoginService {
     }
 
     public UserData getUser(LoginRequest loginRequest) {
-        UserDAO userDAO = new UserDAO();
+        MemoryUserDAO userDAO = new MemoryUserDAO();
         return userDAO.getUser(loginRequest.username());
     }
 

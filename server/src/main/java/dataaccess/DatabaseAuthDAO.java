@@ -3,11 +3,9 @@ package dataaccess;
 import model.AuthData;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-public class AuthDAO {
+public class DatabaseAuthDAO {
 
     static Map<String, AuthData> authTokenToAuthData = new HashMap<>();
     static Map<String, AuthData> usernameToAuthData = new HashMap<>();

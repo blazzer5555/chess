@@ -5,9 +5,9 @@ import dataaccess.*;
 public class ClearService {
 
     public void clearDatabase() {
-        UserDAO userDAO = new UserDAO();
-        AuthDAO authDAO = new AuthDAO();
-        GameDAO gameDAO = new GameDAO();
+        MemoryUserDAO userDAO = new MemoryUserDAO();
+        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        MemoryGameDAO gameDAO = new MemoryGameDAO();
         userDAO.clear();
         authDAO.clear();
         gameDAO.clear();

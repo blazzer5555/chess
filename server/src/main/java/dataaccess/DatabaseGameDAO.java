@@ -5,9 +5,8 @@ import model.GameData;
 import server.JoinGameRequest;
 
 import java.util.*;
-import java.util.Random;
 
-public class GameDAO {
+public class DatabaseGameDAO {
 
     static Set<GameData> setOfGameData = new HashSet<>();
     static Set<Integer> setOfUsedIDs = new HashSet<>();
@@ -44,7 +43,7 @@ public class GameDAO {
     }
 
     public void updateGame(JoinGameRequest request, String authToken) {
-        AuthDAO authDAO = new AuthDAO();
+        MemoryAuthDAO authDAO = new MemoryAuthDAO();
         GameData gameToUpdate = gameIDToGameData.get(request.gameID());
         setOfGameData.remove(gameToUpdate);
         gameIDToGameData.remove(request.gameID());
