@@ -8,6 +8,40 @@ public class DatabaseManager {
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
+    private static final String[] createStatements = {
+            """
+            create table if not exists gamedata(
+                id integer not null primary key auto_increment,
+                gamedata varchar(10000) not null
+            )""",
+            """
+            create table if not exists gamename(
+                gamename varchar(255) not null primary key,
+                gameid integer not null,
+                foreign key(gameid) references gamedata(id)
+            )""",
+            """
+            create table if not exists authdata(
+                id integer not null primary key auto_increment,
+                authdata varchar(1024) not null
+            )""",
+            """
+            create table if not exists authtoken(
+                authtoken varchar(512) not null primary key,
+                authid integer not null,
+                foreign key(authid) references authdata(id)
+            )""",
+            """
+            create table if not exists userdata(
+                id integer not null primary key auto_increment,
+                userdata varchar(1024) not null
+            )""",
+            """
+            create table if not exists username(
+                username varchar(512) not null primary key,
+                userid integer not null,
+                foreign key(userid) references userdata(id)
+            )""",};
 
     /*
      * Load the database information for the db.properties file.
@@ -24,6 +58,11 @@ public class DatabaseManager {
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
+            for (String createStatement: createStatements) {
+                try (var preparedCreateStatement = conn.prepareStatement(createStatement)) {
+                    preparedCreateStatement.executeUpdate();
+                }
+            }
         } catch (SQLException ex) {
             throw new DataAccessException("failed to create database", ex);
         }

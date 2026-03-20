@@ -26,11 +26,27 @@ public class Server {
     }
 
     public int run(int desiredPort) {
+        try {
+            initializeDatabase();
+        }
+        catch (DataAccessException e) {
+            System.out.println("Something went wrong creating the database. Terminating server.");
+            return 8080;
+        }
         javalin.start(desiredPort);
         return javalin.port();
     }
 
     public void stop() {
         javalin.stop();
+    }
+
+    private void initializeDatabase() throws DataAccessException {
+        try {
+            DatabaseManager.createDatabase();
+        }
+        catch (DataAccessException e) {
+            throw e;
+        }
     }
 }
