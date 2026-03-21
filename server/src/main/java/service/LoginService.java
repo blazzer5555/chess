@@ -2,9 +2,8 @@ package service;
 
 import dataaccess.*;
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
 import server.LoginRequest;
-
-import java.util.Objects;
 import java.util.UUID;
 
 public class LoginService {
@@ -23,6 +22,6 @@ public class LoginService {
     }
 
     public boolean isValidPassword(UserData userData, LoginRequest loginrequest) {
-        return Objects.equals(userData.password(), loginrequest.password());
+        return BCrypt.checkpw(loginrequest.password(), userData.password());
     }
 }

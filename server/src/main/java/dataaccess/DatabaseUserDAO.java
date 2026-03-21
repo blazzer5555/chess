@@ -2,6 +2,8 @@ package dataaccess;
 
 import com.google.gson.Gson;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.ResultSet;
 
 public class DatabaseUserDAO {
@@ -30,7 +32,9 @@ public class DatabaseUserDAO {
 
     public void createUser(UserData userData) {
         Gson gson = new Gson();
-        String serializedUserData = gson.toJson(userData);
+        String hashedPassword = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
+        UserData encryptedUserData = new UserData(userData.username(), hashedPassword, userData.email());
+        String serializedUserData = gson.toJson(encryptedUserData);
         try (var conn = DatabaseManager.getConnection()) {
             String createStatement = "INSERT INTO userdata(userdata, username) values ('" + serializedUserData + "','" + userData.username() + "')";
             try (var preparedStatement = conn.prepareStatement(createStatement)) {
