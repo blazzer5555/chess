@@ -24,6 +24,7 @@ public class DatabaseAuthDAO {
 
     public void clear() {
         try (var conn = DatabaseManager.getConnection()) {
+            conn.setCatalog("chessdatabase");
             for (String statement: deletionStatements) {
                 try (var preparedStatement = conn.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();

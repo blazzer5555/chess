@@ -1,7 +1,7 @@
 package service;
 
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
+import dataaccess.DatabaseAuthDAO;
+import dataaccess.DatabaseGameDAO;
 import model.GameData;
 
 import java.util.List;
@@ -9,12 +9,12 @@ import java.util.List;
 public class ListGamesService {
 
     public boolean userIsLoggedIn(String authToken) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         return authDAO.getAuthByAuthToken(authToken) != null;
     }
 
     public List<GameData> listCurrentGames() {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         return gameDAO.listGames();
     }
 }

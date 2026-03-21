@@ -8,13 +8,13 @@ import model.*;
 public class RegisterService {
 
     public boolean userAlreadyInDatabase(String username) {
-        MemoryUserDAO userDAO = new MemoryUserDAO();
+        DatabaseUserDAO userDAO = new DatabaseUserDAO();
         return userDAO.getUser(username) != null;
     }
 
     public AuthData registerUser(UserData userData) {
-        MemoryUserDAO userDAO = new MemoryUserDAO();
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        DatabaseUserDAO userDAO = new DatabaseUserDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         userDAO.createUser(userData);
         String authToken = UUID.randomUUID().toString();
         AuthData authData = new AuthData(authToken, userData.username());

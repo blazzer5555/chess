@@ -1,7 +1,7 @@
 package service;
 
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
+import dataaccess.DatabaseAuthDAO;
+import dataaccess.DatabaseGameDAO;
 import server.JoinGameRequest;
 
 import java.util.Objects;
@@ -9,12 +9,12 @@ import java.util.Objects;
 public class JoinGameService {
 
     public boolean userIsLoggedIn(String authToken) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         return authDAO.getAuthByAuthToken(authToken) != null;
     }
 
     public boolean gameExists(int gameID) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         return gameDAO.getGameByID(gameID) != null;
     }
 
@@ -28,7 +28,7 @@ public class JoinGameService {
     }
 
     public boolean colorAvailable(String color, int gameID) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         if (Objects.equals(color, "WHITE")) {
             return gameDAO.getGameByID(gameID).whiteUsername() == null;
         }
@@ -38,7 +38,7 @@ public class JoinGameService {
     }
 
     public void joinGame(JoinGameRequest request, String authToken) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         gameDAO.updateGame(request, authToken);
     }
 }

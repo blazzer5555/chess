@@ -10,7 +10,7 @@ import java.util.UUID;
 public class LoginService {
 
     public AuthData logInUser(UserData userData) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         String authToken = UUID.randomUUID().toString();
         AuthData authData = new AuthData(authToken, userData.username());
         authDAO.addAuth(authData);
@@ -18,7 +18,7 @@ public class LoginService {
     }
 
     public UserData getUser(LoginRequest loginRequest) {
-        MemoryUserDAO userDAO = new MemoryUserDAO();
+        DatabaseUserDAO userDAO = new DatabaseUserDAO();
         return userDAO.getUser(loginRequest.username());
     }
 

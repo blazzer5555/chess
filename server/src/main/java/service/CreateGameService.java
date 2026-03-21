@@ -1,22 +1,22 @@
 package service;
 
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
+import dataaccess.DatabaseAuthDAO;
+import dataaccess.DatabaseGameDAO;
 
 public class CreateGameService {
 
     public boolean userIsLoggedIn(String authToken) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         return authDAO.getAuthByAuthToken(authToken) != null;
     }
 
     public boolean gameNameIsTaken(String gameName) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         return gameDAO.getGameByName(gameName) != null;
     }
 
     public int createGame(String gameName) {
-        MemoryGameDAO gameDAO = new MemoryGameDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         return gameDAO.createGame(gameName);
     }
 }
