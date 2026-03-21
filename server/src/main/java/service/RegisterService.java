@@ -9,7 +9,7 @@ public class RegisterService {
 
     public boolean userAlreadyInDatabase(String username) {
         DatabaseUserDAO userDAO = new DatabaseUserDAO();
-        return userDAO.getUser(username) != null;
+        return userDAO.getUserByUsername(username) != null;
     }
 
     public AuthData registerUser(UserData userData) {

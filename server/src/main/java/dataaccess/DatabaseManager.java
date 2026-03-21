@@ -12,7 +12,7 @@ public class DatabaseManager {
             "CREATE TABLE IF NOT EXISTS gamedata(id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, gamedata VARCHAR(10000) NOT NULL)",
             """
             create table if not exists gamename(
-                gamename varchar(255) not null primary key,
+                gamename varchar(255) not null,
                 gameid integer not null,
                 foreign key(gameid) references gamedata(id)
             )""",
@@ -23,7 +23,7 @@ public class DatabaseManager {
             )""",
             """
             create table if not exists authtoken(
-                authtoken varchar(512) not null primary key,
+                authtoken varchar(512) not null,
                 authid integer not null,
                 foreign key(authid) references authdata(id)
             )""",
@@ -34,10 +34,10 @@ public class DatabaseManager {
             )""",
             """
             create table if not exists username(
-                username varchar(512) not null primary key,
+                username varchar(512) not null,
                 userid integer not null,
                 foreign key(userid) references userdata(id)
-            )""",};
+            )"""};
 
     /*
      * Load the database information for the db.properties file.

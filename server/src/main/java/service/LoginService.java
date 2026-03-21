@@ -19,7 +19,7 @@ public class LoginService {
 
     public UserData getUser(LoginRequest loginRequest) {
         DatabaseUserDAO userDAO = new DatabaseUserDAO();
-        return userDAO.getUser(loginRequest.username());
+        return userDAO.getUserByUsername(loginRequest.username());
     }
 
     public boolean isValidPassword(UserData userData, LoginRequest loginrequest) {

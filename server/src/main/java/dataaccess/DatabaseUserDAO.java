@@ -5,6 +5,8 @@ import model.UserData;
 
 import java.sql.ResultSet;
 
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
+
 public class DatabaseUserDAO {
 
     private static final String[] clearStatements = {
@@ -12,7 +14,7 @@ public class DatabaseUserDAO {
             "DELETE FROM userdata"
         };
 
-    public UserData getUser(String username) {
+    public UserData getUserByUsername(String username) {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chessdatabase");
@@ -43,13 +45,17 @@ public class DatabaseUserDAO {
         String serializedUserData = gson.toJson(userData);
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chessdatabase");
-            String[] createStatements = {
-                    "INSERT INTO userdata(userdata) values (" + serializedUserData + ");",
-                    "INSERT INTO username(username) values (" + userData.username() + ");"
-            };
-            for (String statement: createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
+            String createStatement1 = "INSERT INTO userdata(userdata) values ('" + serializedUserData + "')";
+            try (var preparedStatement1 = conn.prepareStatement(createStatement1, RETURN_GENERATED_KEYS)) {
+                preparedStatement1.executeUpdate();
+                ResultSet rs = preparedStatement1.getGeneratedKeys();
+                var id = 0;
+                if (rs.next()) {
+                    id = rs.getInt(1);
+                }
+                String createStatement2 = "INSERT INTO username(username, userid) values ('" + userData.username() +"','" + id + "')";
+                try (var preparedStatement2 = conn.prepareStatement(createStatement2)) {
+                    preparedStatement2.executeUpdate();
                 }
             }
         }
@@ -68,7 +74,7 @@ public class DatabaseUserDAO {
             }
         }
         catch (Exception e) {
-            System.out.println("Could not clear the database.");
+            System.out.println("Could not clear the user database.");
         }
     }
 }
