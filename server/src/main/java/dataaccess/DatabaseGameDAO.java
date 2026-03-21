@@ -15,6 +15,7 @@ public class DatabaseGameDAO {
 
     public int createGame(String gameName) {
         return 0;
+        // create a new GameData object and add it to the database
     }
 
     public GameData getGameByID(int gameID) {

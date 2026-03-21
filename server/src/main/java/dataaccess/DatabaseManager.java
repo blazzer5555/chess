@@ -9,35 +9,20 @@ public class DatabaseManager {
     private static String dbPassword;
     private static String connectionUrl;
     private static final String[] createStatements = {
-            "CREATE TABLE IF NOT EXISTS gamedata(id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, gamedata VARCHAR(10000) NOT NULL)",
-            """
-            create table if not exists gamename(
-                gamename varchar(255) not null,
-                gameid integer not null,
-                foreign key(gameid) references gamedata(id)
-            )""",
+            "CREATE TABLE IF NOT EXISTS gamedata(id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, gamedata VARCHAR(10000) NOT NULL, gamename varchar(255) not null)",
             """
             create table if not exists authdata(
                 id integer not null primary key auto_increment,
-                authdata varchar(1024) not null
-            )""",
-            """
-            create table if not exists authtoken(
-                authtoken varchar(512) not null,
-                authid integer not null,
-                foreign key(authid) references authdata(id)
+                authdata varchar(1024) not null,
+                authtoken varchar(512) not null
             )""",
             """
             create table if not exists userdata(
                 id integer not null primary key auto_increment,
-                userdata varchar(1024) not null
-            )""",
-            """
-            create table if not exists username(
-                username varchar(512) not null,
-                userid integer not null,
-                foreign key(userid) references userdata(id)
-            )"""};
+                userdata varchar(1024) not null,
+                username varchar(512) not null
+            )"""
+            };
 
     /*
      * Load the database information for the db.properties file.

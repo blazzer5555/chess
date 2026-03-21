@@ -2,23 +2,15 @@ package dataaccess;
 
 import com.google.gson.Gson;
 import model.UserData;
-
 import java.sql.ResultSet;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-
 public class DatabaseUserDAO {
-
-    private static final String[] clearStatements = {
-            "DELETE FROM username",
-            "DELETE FROM userdata"
-        };
 
     public UserData getUserByUsername(String username) {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chessdatabase");
-            String getStatement1 = "SELECT userdata FROM userdata, username WHERE username = '" + username + "' AND userid = id";
+            String getStatement1 = "SELECT userdata FROM userdata WHERE username = '" + username + "'";
             try (var preparedStatement = conn.prepareStatement(getStatement1)) {
                 ResultSet rs = preparedStatement.executeQuery();
                 var serializedUserData = "";
@@ -42,18 +34,9 @@ public class DatabaseUserDAO {
         String serializedUserData = gson.toJson(userData);
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chessdatabase");
-            String createStatement1 = "INSERT INTO userdata(userdata) values ('" + serializedUserData + "')";
-            try (var preparedStatement1 = conn.prepareStatement(createStatement1, RETURN_GENERATED_KEYS)) {
-                preparedStatement1.executeUpdate();
-                ResultSet rs = preparedStatement1.getGeneratedKeys();
-                var id = 0;
-                if (rs.next()) {
-                    id = rs.getInt(1);
-                }
-                String createStatement2 = "INSERT INTO username(username, userid) values ('" + userData.username() +"','" + id + "')";
-                try (var preparedStatement2 = conn.prepareStatement(createStatement2)) {
-                    preparedStatement2.executeUpdate();
-                }
+            String createStatement = "INSERT INTO userdata(userdata, username) values ('" + serializedUserData + "','" + userData.username() + "')";
+            try (var preparedStatement = conn.prepareStatement(createStatement)) {
+                preparedStatement.executeUpdate();
             }
         }
         catch (Exception e) {
@@ -64,10 +47,8 @@ public class DatabaseUserDAO {
     public void clear() {
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chessdatabase");
-            for (String statement: clearStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM userdata")) {
+                preparedStatement.executeUpdate();
             }
         }
         catch (Exception e) {
