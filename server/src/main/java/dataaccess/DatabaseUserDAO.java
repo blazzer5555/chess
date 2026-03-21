@@ -15,8 +15,8 @@ public class DatabaseUserDAO {
                 var serializedUserData = "";
                 if (rs.next()) {
                     serializedUserData = rs.getString(1);
+                    return gson.fromJson(serializedUserData, UserData.class);
                 }
-                return gson.fromJson(serializedUserData, UserData.class);
             }
             catch (Exception e) {
                 return null;

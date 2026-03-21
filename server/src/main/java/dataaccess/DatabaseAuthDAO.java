@@ -2,7 +2,6 @@ package dataaccess;
 
 import model.AuthData;
 import com.google.gson.Gson;
-import model.UserData;
 import java.sql.ResultSet;
 
 public class DatabaseAuthDAO {
@@ -16,8 +15,8 @@ public class DatabaseAuthDAO {
                 var serializedAuthData = "";
                 if (rs.next()) {
                     serializedAuthData = rs.getString(1);
+                    return gson.fromJson(serializedAuthData, AuthData.class);
                 }
-                return gson.fromJson(serializedAuthData, AuthData.class);
             }
             catch (Exception e) {
                 return null;
