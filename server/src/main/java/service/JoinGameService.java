@@ -39,6 +39,6 @@ public class JoinGameService {
 
     public void joinGame(JoinGameRequest request, String authToken) {
         DatabaseGameDAO gameDAO = new DatabaseGameDAO();
-        gameDAO.updateGame(request, authToken);
+        gameDAO.joinPlayer(request, authToken);
     }
 }

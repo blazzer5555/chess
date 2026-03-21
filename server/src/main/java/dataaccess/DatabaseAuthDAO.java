@@ -7,11 +7,6 @@ import java.sql.ResultSet;
 
 public class DatabaseAuthDAO {
 
-    private static final String[] clearStatements = {
-            "DELETE FROM authtoken",
-            "DELETE FROM authdata"
-        };
-
     public AuthData getAuthByAuthToken(String authToken) {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
