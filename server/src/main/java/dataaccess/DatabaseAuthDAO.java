@@ -10,7 +10,6 @@ public class DatabaseAuthDAO {
     public AuthData getAuthByAuthToken(String authToken) {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog("chessdatabase");
             String getStatement1 = "SELECT authdata FROM authdata WHERE authtoken = '" + authToken + "'";
             try (var preparedStatement = conn.prepareStatement(getStatement1)) {
                 ResultSet rs = preparedStatement.executeQuery();
@@ -34,7 +33,6 @@ public class DatabaseAuthDAO {
         Gson gson = new Gson();
         String serializedAuthData = gson.toJson(authData);
         try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog("chessdatabase");
             String createStatement1 = "INSERT INTO authdata(authdata, authtoken) values ('" + serializedAuthData + "','" + authData.authToken() + "')";
             try (var preparedStatement1 = conn.prepareStatement(createStatement1)) {
                 preparedStatement1.executeUpdate();
@@ -49,7 +47,6 @@ public class DatabaseAuthDAO {
         Gson gson = new Gson();
         String serializedAuthData = gson.toJson(authData);
         try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog("chessdatabase");
             try (var preparedStatement = conn.prepareStatement("DELETE FROM authdata WHERE authdata = '" + serializedAuthData + "'")) {
                 preparedStatement.executeUpdate();
             }
@@ -61,7 +58,6 @@ public class DatabaseAuthDAO {
 
     public void clear() {
         try (var conn = DatabaseManager.getConnection()) {
-            conn.setCatalog("chessdatabase");
             try (var preparedStatement = conn.prepareStatement("DELETE FROM authdata")) {
                 preparedStatement.executeUpdate();
             }
