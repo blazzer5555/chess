@@ -43,7 +43,7 @@ public class DatabaseGameDAO {
             }
         }
         catch (Exception e) {
-            System.out.println("Could not clear the database.");
+            System.out.println("Could not clear the game database.");
         }
     }
 

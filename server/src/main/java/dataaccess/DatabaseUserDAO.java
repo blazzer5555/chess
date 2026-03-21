@@ -18,20 +18,17 @@ public class DatabaseUserDAO {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             conn.setCatalog("chessdatabase");
-            String getStatement1 = "SELECT userid FROM username WHERE username = \"" + username + "\"";
+            String getStatement1 = "SELECT userdata FROM userdata, username WHERE username = '" + username + "' AND userid = id";
             try (var preparedStatement = conn.prepareStatement(getStatement1)) {
                 ResultSet rs = preparedStatement.executeQuery();
-                try {
-                    int id = rs.getInt(1);
-                    String getStatement2 = "SELECT userdata FROM userdata WHERE id = \"" + id + "\"";
-                    try (var preparedStatement2 = conn.prepareStatement(getStatement2)) {
-                        String serializedUserData = String.valueOf(preparedStatement2.executeQuery());
-                        return gson.fromJson(serializedUserData, UserData.class);
-                    }
+                var serializedUserData = "";
+                if (rs.next()) {
+                    serializedUserData = rs.getString(1);
                 }
-                catch (Exception e) {
-                    return null;
-                }
+                return gson.fromJson(serializedUserData, UserData.class);
+            }
+            catch (Exception e) {
+                return null;
             }
         }
         catch (Exception e) {
