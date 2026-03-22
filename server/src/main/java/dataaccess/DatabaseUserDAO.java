@@ -11,8 +11,9 @@ public class DatabaseUserDAO {
     public UserData getUserByUsername(String username) {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
-            String getStatement1 = "SELECT userdata FROM userdata WHERE username = '" + username + "'";
-            try (var preparedStatement = conn.prepareStatement(getStatement1)) {
+            String getStatement = "SELECT userdata FROM userdata WHERE username = ?";
+            try (var preparedStatement = conn.prepareStatement(getStatement)) {
+                preparedStatement.setString(1, username);
                 ResultSet rs = preparedStatement.executeQuery();
                 var serializedUserData = "";
                 if (rs.next()) {
@@ -36,8 +37,10 @@ public class DatabaseUserDAO {
         UserData encryptedUserData = new UserData(userData.username(), hashedPassword, userData.email());
         String serializedUserData = gson.toJson(encryptedUserData);
         try (var conn = DatabaseManager.getConnection()) {
-            String createStatement = "INSERT INTO userdata(userdata, username) values ('" + serializedUserData + "','" + userData.username() + "')";
+            String createStatement = "INSERT INTO userdata(userdata, username) values (?, ?)";
             try (var preparedStatement = conn.prepareStatement(createStatement)) {
+                preparedStatement.setString(1, serializedUserData);
+                preparedStatement.setString(2, userData.username());
                 preparedStatement.executeUpdate();
             }
         }

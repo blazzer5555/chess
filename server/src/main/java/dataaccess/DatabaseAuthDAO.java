@@ -9,8 +9,9 @@ public class DatabaseAuthDAO {
     public AuthData getAuthByAuthToken(String authToken) {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
-            String getStatement1 = "SELECT authdata FROM authdata WHERE authtoken = '" + authToken + "'";
-            try (var preparedStatement = conn.prepareStatement(getStatement1)) {
+            String getStatement = "SELECT authdata FROM authdata WHERE authtoken = ?";
+            try (var preparedStatement = conn.prepareStatement(getStatement)) {
+                preparedStatement.setString(1, authToken);
                 ResultSet rs = preparedStatement.executeQuery();
                 var serializedAuthData = "";
                 if (rs.next()) {
@@ -32,9 +33,11 @@ public class DatabaseAuthDAO {
         Gson gson = new Gson();
         String serializedAuthData = gson.toJson(authData);
         try (var conn = DatabaseManager.getConnection()) {
-            String createStatement1 = "INSERT INTO authdata(authdata, authtoken) values ('" + serializedAuthData + "','" + authData.authToken() + "')";
-            try (var preparedStatement1 = conn.prepareStatement(createStatement1)) {
-                preparedStatement1.executeUpdate();
+            String createStatement = "INSERT INTO authdata(authdata, authtoken) values (?, ?)";
+            try (var preparedStatement = conn.prepareStatement(createStatement)) {
+                preparedStatement.setString(1, serializedAuthData);
+                preparedStatement.setString(2, authData.authToken());
+                preparedStatement.executeUpdate();
             }
         }
         catch (Exception e) {
@@ -46,7 +49,8 @@ public class DatabaseAuthDAO {
         Gson gson = new Gson();
         String serializedAuthData = gson.toJson(authData);
         try (var conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("DELETE FROM authdata WHERE authdata = '" + serializedAuthData + "'")) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authdata WHERE authdata = ?")) {
+                preparedStatement.setString(1, serializedAuthData);
                 preparedStatement.executeUpdate();
             }
         }
