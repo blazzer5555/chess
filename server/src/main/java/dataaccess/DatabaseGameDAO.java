@@ -5,12 +5,13 @@ import com.google.gson.Gson;
 import model.GameData;
 import server.JoinGameRequest;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
 public class DatabaseGameDAO {
 
-    public int createGame(String gameName) {
+    public int createGame(String gameName) throws SQLException, DataAccessException {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String createStatement = "INSERT INTO gamedata(gamedata, gamename) values (?, ?)";
@@ -34,13 +35,10 @@ public class DatabaseGameDAO {
                 }
             }
         }
-        catch (Exception e) {
-            System.out.println("Could not add AuthData to the database.");
-        }
         return -1;
     }
 
-    public GameData getGameByID(int gameID) {
+    public GameData getGameByID(int gameID) throws SQLException, DataAccessException{
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE id = ?";
@@ -53,17 +51,11 @@ public class DatabaseGameDAO {
                     return gson.fromJson(serializedGameData, GameData.class);
                 }
             }
-            catch (Exception e) {
-                return null;
-            }
-        }
-        catch (Exception e) {
-            System.out.println("Could not get UserData from the database.");
         }
         return null;
     }
 
-    public GameData getGameByName(String name) {
+    public GameData getGameByName(String name) throws SQLException, DataAccessException{
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE gamename = ?";
@@ -76,17 +68,11 @@ public class DatabaseGameDAO {
                     return gson.fromJson(serializedGameData, GameData.class);
                 }
             }
-            catch (Exception e) {
-                return null;
-            }
-        }
-        catch (Exception e) {
-            System.out.println("Could not get UserData from the database.");
         }
         return null;
     }
 
-    public List<GameData> listGames() {
+    public List<GameData> listGames() throws SQLException, DataAccessException{
         List<GameData> gameList = new ArrayList<>();
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
@@ -98,19 +84,12 @@ public class DatabaseGameDAO {
                     serializedGameData = rs.getString(1);
                     gameList.add(gson.fromJson(serializedGameData, GameData.class));
                 }
-                return gameList;
-            }
-            catch (Exception e) {
-                return null;
             }
         }
-        catch (Exception e) {
-            System.out.println("Could not get UserData from the database.");
-        }
-        return null;
+        return gameList;
     }
 
-    public void joinPlayer(JoinGameRequest request, String authToken) {
+    public void joinPlayer(JoinGameRequest request, String authToken) throws SQLException, DataAccessException{
         Gson gson = new Gson();
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         try (var conn = DatabaseManager.getConnection()) {
@@ -139,23 +118,14 @@ public class DatabaseGameDAO {
                     }
                 }
             }
-            catch (Exception e) {
-                System.out.println("Could not updateGameData from the database.");
-            }
-        }
-        catch (Exception e) {
-            System.out.println("Could not update GameData to the database.");
         }
     }
 
-    public void clear() {
+    public void clear() throws SQLException, DataAccessException{
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM gamedata")) {
                 preparedStatement.executeUpdate();
             }
-        }
-        catch (Exception e) {
-            System.out.println("Could not clear the game database.");
         }
     }
 }

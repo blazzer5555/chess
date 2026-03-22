@@ -13,39 +13,43 @@ public class JoinGameHandler implements Handler {
         JoinGameRequest request = gson.fromJson(context.body(), JoinGameRequest.class);
         JoinGameService joiner = new JoinGameService();
         String authToken = context.header("authorization");
-        if (joiner.userIsLoggedIn(authToken)) {
-            if (!joiner.isInvalidColor(request.playerColor())) {
-                checkForValidSlot(joiner, context, request, authToken);
+        try {
+            if (joiner.userIsLoggedIn(authToken)) {
+                if (!joiner.isInvalidColor(request.playerColor())) {
+                    checkForValidSlot(joiner, context, request, authToken);
+                } else {
+                    createBadRequestResponse(context);
+                }
+            } else {
+                ErrorResponder responder = new ErrorResponder();
+                responder.handleUnauthorized(context);
             }
-            else {
-                createBadRequestResponse(context);
-            }
-        }
-        else {
+        } catch (Exception e) {
             ErrorResponder responder = new ErrorResponder();
-            responder.handleUnauthorized(context, gson);
+            responder.handleBadDatabase(context);
         }
     }
 
     private void createBadRequestResponse(Context context) {
-        Gson gson = new Gson();
         ErrorResponder responder = new ErrorResponder();
-        responder.handleBadRequest(context, gson);
+        responder.handleBadRequest(context);
     }
 
     private void checkForValidSlot(JoinGameService joiner, Context context, JoinGameRequest request, String authToken) {
-        Gson gson = new Gson();
-        if (joiner.gameExists(request.gameID())) {
-            if (joiner.colorAvailable(request.playerColor(), request.gameID())) {
-                joiner.joinGame(request, authToken);
+        try {
+            if (joiner.gameExists(request.gameID())) {
+                if (joiner.colorAvailable(request.playerColor(), request.gameID())) {
+                    joiner.joinGame(request, authToken);
+                } else {
+                    ErrorResponder responder = new ErrorResponder();
+                    responder.handleAlreadyTaken(context);
+                }
+            } else {
+                createBadRequestResponse(context);
             }
-            else {
-                ErrorResponder responder = new ErrorResponder();
-                responder.handleAlreadyTaken(context, gson);
-            }
-        }
-        else {
-            createBadRequestResponse(context);
+        } catch (Exception e) {
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleBadDatabase(context);
         }
     }
 }

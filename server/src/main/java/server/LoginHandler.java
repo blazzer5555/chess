@@ -16,31 +16,34 @@ public class LoginHandler implements Handler {
         LoginService loginService = new LoginService();
         if (loginRequest.username() == null | loginRequest.password() == null) {
             ErrorResponder responder = new ErrorResponder();
-            responder.handleBadRequest(context, gson);
+            responder.handleBadRequest(context);
             return;
         }
-        UserData userData = loginService.getUser(loginRequest);
-        if (userData != null) {
-            if (loginService.isValidPassword(userData, loginRequest)) {
-                AuthData authData = loginService.logInUser(userData);
-                record LoginResponse(String username, String authToken) { }
-                context.status(200);
-                LoginResponse response = new LoginResponse(userData.username(),
-                        authData.authToken());
-                context.result(gson.toJson(response));
-            }
-            else {
+        try {
+            UserData userData = loginService.getUser(loginRequest);
+            if (userData != null) {
+                if (loginService.isValidPassword(userData, loginRequest)) {
+                    AuthData authData = loginService.logInUser(userData);
+                    record LoginResponse(String username, String authToken) {
+                    }
+                    context.status(200);
+                    LoginResponse response = new LoginResponse(userData.username(),
+                            authData.authToken());
+                    context.result(gson.toJson(response));
+                } else {
+                    createUnauthorizedResponse(context);
+                }
+            } else {
                 createUnauthorizedResponse(context);
             }
-        }
-        else {
-            createUnauthorizedResponse(context);
+        } catch (Exception e) {
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleBadDatabase(context);
         }
     }
 
     private void createUnauthorizedResponse(Context context) {
-        Gson gson = new Gson();
         ErrorResponder responder = new ErrorResponder();
-        responder.handleUnauthorized(context, gson);
+        responder.handleUnauthorized(context);
     }
 }

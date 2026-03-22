@@ -13,22 +13,26 @@ public class CreateGameHandler implements Handler {
         CreateGameRequest request = gson.fromJson(context.body(), CreateGameRequest.class);
         CreateGameService creater = new CreateGameService();
         String authToken = context.header("authorization");
-        if (creater.userIsLoggedIn(authToken)) {
-            if  (request.gameName() == null | creater.gameNameIsTaken(request.gameName())) {
+        try {
+            if (creater.userIsLoggedIn(authToken)) {
+                if (request.gameName() == null | creater.gameNameIsTaken(request.gameName())) {
+                    ErrorResponder responder = new ErrorResponder();
+                    responder.handleBadRequest(context);
+                } else {
+                    int newID = creater.createGame(request.gameName());
+                    context.status(200);
+                    record SuccessfullyCreatedResponse(int gameID) {
+                    }
+                    SuccessfullyCreatedResponse response = new SuccessfullyCreatedResponse(newID);
+                    context.result(gson.toJson(response));
+                }
+            } else {
                 ErrorResponder responder = new ErrorResponder();
-                responder.handleBadRequest(context, gson);
+                responder.handleUnauthorized(context);
             }
-            else {
-                int newID = creater.createGame(request.gameName());
-                context.status(200);
-                record SuccessfullyCreatedResponse(int gameID) { }
-                SuccessfullyCreatedResponse response = new SuccessfullyCreatedResponse(newID);
-                context.result(gson.toJson(response));
-            }
-        }
-        else {
+        } catch (Exception e) {
             ErrorResponder responder = new ErrorResponder();
-            responder.handleUnauthorized(context, gson);
+            responder.handleBadDatabase(context);
         }
     }
 }

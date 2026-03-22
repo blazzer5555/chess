@@ -5,10 +5,11 @@ import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class DatabaseUserDAO {
 
-    public UserData getUserByUsername(String username) {
+    public UserData getUserByUsername(String username) throws SQLException, DataAccessException{
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT userdata FROM userdata WHERE username = ?";
@@ -21,17 +22,11 @@ public class DatabaseUserDAO {
                     return gson.fromJson(serializedUserData, UserData.class);
                 }
             }
-            catch (Exception e) {
-                return null;
-            }
-        }
-        catch (Exception e) {
-            System.out.println("Could not get UserData from the database.");
         }
         return null;
     }
 
-    public void createUser(UserData userData) {
+    public void createUser(UserData userData) throws SQLException, DataAccessException{
         Gson gson = new Gson();
         String hashedPassword = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
         UserData encryptedUserData = new UserData(userData.username(), hashedPassword, userData.email());
@@ -44,19 +39,13 @@ public class DatabaseUserDAO {
                 preparedStatement.executeUpdate();
             }
         }
-        catch (Exception e) {
-            System.out.println("Could not add UserData to the database.");
-        }
     }
 
-    public void clear() {
+    public void clear() throws SQLException, DataAccessException{
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM userdata")) {
                 preparedStatement.executeUpdate();
             }
-        }
-        catch (Exception e) {
-            System.out.println("Could not clear the user database.");
         }
     }
 }

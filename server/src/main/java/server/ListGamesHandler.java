@@ -15,22 +15,28 @@ public class ListGamesHandler implements Handler {
         Gson gson = new Gson();
         ListGamesService lister = new ListGamesService();
         String authToken = context.header("authorization");
-        if (lister.userIsLoggedIn(authToken)) {
-            List<GameData> listOfCurrentGames = lister.listCurrentGames();
-            record NeededGameInfo(int gameID, String whiteUsername, String blackUsername, String gameName) { }
-            record ListResponse(List<NeededGameInfo> games) { }
-            ListResponse response = new ListResponse(new ArrayList<>());
-            for (GameData game: listOfCurrentGames) {
-                NeededGameInfo temp = new NeededGameInfo(game.gameID(), game.whiteUsername(),
-                                                         game.blackUsername(), game.gameName());
-                response.games.add(temp);
+        try {
+            if (lister.userIsLoggedIn(authToken)) {
+                List<GameData> listOfCurrentGames = lister.listCurrentGames();
+                record NeededGameInfo(int gameID, String whiteUsername, String blackUsername, String gameName) {
+                }
+                record ListResponse(List<NeededGameInfo> games) {
+                }
+                ListResponse response = new ListResponse(new ArrayList<>());
+                for (GameData game : listOfCurrentGames) {
+                    NeededGameInfo temp = new NeededGameInfo(game.gameID(), game.whiteUsername(),
+                            game.blackUsername(), game.gameName());
+                    response.games.add(temp);
+                }
+                context.status(200);
+                context.result(gson.toJson(response));
+            } else {
+                ErrorResponder responder = new ErrorResponder();
+                responder.handleUnauthorized(context);
             }
-            context.status(200);
-            context.result(gson.toJson(response));
-        }
-        else {
+        } catch (Exception e) {
             ErrorResponder responder = new ErrorResponder();
-            responder.handleUnauthorized(context, gson);
+            responder.handleBadDatabase(context);
         }
     }
 }

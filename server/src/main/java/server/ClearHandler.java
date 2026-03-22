@@ -9,8 +9,13 @@ public class ClearHandler implements Handler {
     @Override
     public void handle(@NotNull Context context) {
         ClearService clearer = new ClearService();
-        clearer.clearDatabase();
-        context.status(200);
-        context.result("");
+        try {
+            clearer.clearDatabase();
+            context.status(200);
+            context.result("");
+        } catch (Exception e) {
+            ErrorResponder responder = new ErrorResponder();
+            responder.handleBadDatabase(context);
+        }
     }
 }

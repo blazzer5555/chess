@@ -1,5 +1,6 @@
 package service;
 
+import java.sql.SQLException;
 import java.util.UUID;
 
 import dataaccess.*;
@@ -7,12 +8,12 @@ import model.*;
 
 public class RegisterService {
 
-    public boolean userAlreadyInDatabase(String username) {
+    public boolean userAlreadyInDatabase(String username) throws SQLException, DataAccessException{
         DatabaseUserDAO userDAO = new DatabaseUserDAO();
         return userDAO.getUserByUsername(username) != null;
     }
 
-    public AuthData registerUser(UserData userData) {
+    public AuthData registerUser(UserData userData) throws SQLException, DataAccessException{
         DatabaseUserDAO userDAO = new DatabaseUserDAO();
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         userDAO.createUser(userData);
