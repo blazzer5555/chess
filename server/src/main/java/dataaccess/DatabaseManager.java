@@ -8,8 +8,14 @@ public class DatabaseManager {
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
+    private static final String FIRST_STATEMENT = """
+            CREATE TABLE IF NOT EXISTS gamedata(
+                id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                gamedata VARCHAR(10000) NOT NULL,
+                gamename varchar(255) not null)
+            """;
     private static final String[] CREATE_STATEMENTS = {
-            "CREATE TABLE IF NOT EXISTS gamedata(id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, gamedata VARCHAR(10000) NOT NULL, gamename varchar(255) not null)",
+            FIRST_STATEMENT,
             """
             create table if not exists authdata(
                 id integer not null primary key auto_increment,

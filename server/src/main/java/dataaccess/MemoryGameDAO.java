@@ -44,26 +44,6 @@ public class MemoryGameDAO {
         return new ArrayList<>(setOfGameData);
     }
 
-    public void updateGame(JoinGameRequest request, String authToken) {
-        MemoryAuthDAO authDAO = new MemoryAuthDAO();
-        GameData gameToUpdate = gameIDToGameData.get(request.gameID());
-        setOfGameData.remove(gameToUpdate);
-        gameIDToGameData.remove(request.gameID());
-        gameNameToGameData.remove(gameToUpdate.gameName());
-        GameData updatedGame;
-        if (Objects.equals(request.playerColor(), "WHITE")) {
-            updatedGame = new GameData(gameToUpdate.gameID(), authDAO.getAuthByAuthToken(authToken).username(),
-                    gameToUpdate.blackUsername(), gameToUpdate.gameName(),
-                    gameToUpdate.game());
-        }
-        else {
-            updatedGame = new GameData(gameToUpdate.gameID(), gameToUpdate.whiteUsername(),
-                    authDAO.getAuthByAuthToken(authToken).username(),
-                    gameToUpdate.gameName(), gameToUpdate.game());
-        }
-        updateDataStructures(updatedGame);
-    }
-
     public void clear() {
         setOfGameData.clear();
         gameIDToGameData.clear();
