@@ -48,4 +48,10 @@ public class MemoryGameDAO {
         gameNameToGameData.clear();
         setOfUsedIDs.clear();
     }
+
+    private void updateDataStructures(GameData updatedGame) {
+        setOfGameData.add(updatedGame);
+        gameIDToGameData.put(updatedGame.gameID(), updatedGame);
+        gameNameToGameData.put(updatedGame.gameName(), updatedGame);
+    }
 }
