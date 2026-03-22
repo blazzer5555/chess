@@ -9,12 +9,7 @@ public class DatabaseManager {
     private static String dbPassword;
     private static String connectionUrl;
     private static final String[] CREATE_STATEMENTS = {
-            """
-            create table is not exists gamedata(
-                id integer not null primary key auto_increment,
-                gamedata varchar(10000) not null,
-                gamename varchar(255) not null
-            """,
+            "CREATE TABLE IF NOT EXISTS gamedata(id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, gamedata VARCHAR(10000) NOT NULL, gamename varchar(255) not null)",
             """
             create table if not exists authdata(
                 id integer not null primary key auto_increment,
