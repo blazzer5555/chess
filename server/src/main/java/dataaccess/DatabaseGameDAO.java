@@ -20,17 +20,17 @@ public class DatabaseGameDAO {
                 preparedStatement1.setString(2, gameName);
                 preparedStatement1.executeUpdate();
                 var resultSet = preparedStatement1.getGeneratedKeys();
-                var ID = 0;
+                var gameID = 0;
                 if (resultSet.next()) {
-                    ID = resultSet.getInt(1);
-                    GameData gameData = new GameData(ID, null, null, gameName, new ChessGame());
+                    gameID = resultSet.getInt(1);
+                    GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
                     String serializedGameData = gson.toJson(gameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, serializedGameData);
-                        preparedStatement2.setInt(2, ID);
+                        preparedStatement2.setInt(2, gameID);
                         preparedStatement2.executeUpdate();
-                        return ID;
+                        return gameID;
                     }
                 }
             }
@@ -104,10 +104,12 @@ public class DatabaseGameDAO {
                     GameData newGameData;
                     String playerUsername = authDAO.getAuthByAuthToken(authToken).username();
                     if (Objects.equals(request.playerColor(), "WHITE")) {
-                        newGameData = new GameData(oldGameData.gameID(), playerUsername, oldGameData.blackUsername(), oldGameData.gameName(), oldGameData.game());
+                        newGameData = new GameData(oldGameData.gameID(), playerUsername,
+                                oldGameData.blackUsername(), oldGameData.gameName(), oldGameData.game());
                     }
                     else {
-                        newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(), playerUsername, oldGameData.gameName(), oldGameData.game());
+                        newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(),
+                                playerUsername, oldGameData.gameName(), oldGameData.game());
                     }
                     var newSerializedGameData = gson.toJson(newGameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
