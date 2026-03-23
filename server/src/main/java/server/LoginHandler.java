@@ -3,6 +3,7 @@ package server;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import model.AuthData;
+import model.LoginRequest;
 import model.UserData;
 import org.jetbrains.annotations.NotNull;
 import service.LoginService;

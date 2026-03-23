@@ -3,7 +3,7 @@ package service;
 import dataaccess.*;
 import model.*;
 import org.mindrot.jbcrypt.BCrypt;
-import server.LoginRequest;
+import model.LoginRequest;
 
 import java.sql.SQLException;
 import java.util.UUID;

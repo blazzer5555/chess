@@ -2,6 +2,7 @@ package server;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import model.JoinGameRequest;
 import org.jetbrains.annotations.NotNull;
 import service.JoinGameService;
 import com.google.gson.Gson;

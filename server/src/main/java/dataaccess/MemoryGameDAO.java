@@ -3,7 +3,6 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
-import server.JoinGameRequest;
 
 import java.util.*;
 import java.util.Random;

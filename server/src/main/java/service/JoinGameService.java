@@ -3,7 +3,7 @@ package service;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseAuthDAO;
 import dataaccess.DatabaseGameDAO;
-import server.JoinGameRequest;
+import model.JoinGameRequest;
 
 import java.sql.SQLException;
 import java.util.Objects;

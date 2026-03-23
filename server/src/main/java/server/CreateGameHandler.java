@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import model.CreateGameRequest;
 import org.jetbrains.annotations.NotNull;
 import service.CreateGameService;
 
