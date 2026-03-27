@@ -53,7 +53,12 @@ public class ClientMain {
                 System.out.println("Please enter your password.");
                 String loginPassword = scanner.nextLine();
                 LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
-                authToken = server.sendLoginRequest(loginRequest);
+                try {
+                    authToken = server.sendLoginRequest(loginRequest);
+                }
+                catch (Exception e) {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                }
                 break;
             case (4):
                 System.out.println("Please enter a username.");
@@ -65,7 +70,13 @@ public class ClientMain {
                 System.out.println("Please enter the email you'd like to use with this account");
                 String registerEmail = scanner.nextLine();
                 UserData registerRequest = new UserData(registerUsername, registerPassword, registerEmail);
-                server.sendRegisterRequest(registerRequest);
+                try {
+                    authToken = server.sendRegisterRequest(registerRequest);
+
+                }
+                catch (Exception e) {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                }
                 break;
             default:
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -97,16 +108,31 @@ public class ClientMain {
                 System.out.println("Spectate game: Observe a game that is being played by other players.");
                 break;
             case(2):
-                server.sendLogoutRequest(authToken);
+                try {
+                    server.sendLogoutRequest(authToken);
+                                    }
+                catch (Exception e) {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                }
                 return null;
             case(3):
                 System.out.println("What would you like to name your game session?");
                 String gameName = scanner.nextLine();
                 CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
-                server.sendCreateGameRequest(createGameRequest);
+                try {
+                    int returnGameID = server.sendCreateGameRequest(createGameRequest);
+                }
+                catch (Exception e) {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                }
                 break;
             case(4):
-                ArrayList<ListGamesReturnData> listOfGameData = server.sendListGamesRequest();
+                try {
+                    ArrayList<ListGamesReturnData> listOfGameData = server.sendListGamesRequest();
+                }
+                catch (Exception e) {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                }
                 break;
             case(5):
                 boolean choseValidGame = false;
@@ -145,7 +171,12 @@ public class ClientMain {
                     }
                 }
                 JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
-                server.sendJoinGameRequest(joinGameRequest);
+                try {
+                    server.sendJoinGameRequest(joinGameRequest);
+                }
+                catch (Exception e) {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                }
                 if (color.equals("WHITE")) {
                     drawer.drawWhitePerspective();
                 }
