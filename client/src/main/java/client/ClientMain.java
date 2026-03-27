@@ -6,17 +6,15 @@ import java.util.*;
 public class ClientMain {
 
     static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        ServerFacade server = new ServerFacade();
         System.out.println("Did someone ask to play chess?");
         boolean doneWithProgram = false;
         String authToken = null;
         while (!doneWithProgram) {
             if (authToken != null) {
-                authToken = processLoginLoop(scanner, server, authToken);
+                authToken = processLoginLoop(authToken);
             }
             else {
-                PreLoginLoopData userStatuses = processPreLoginLoop(scanner, server);
+                PreLoginLoopData userStatuses = processPreLoginLoop();
                 doneWithProgram = userStatuses.doneWithProgram();
                 authToken = userStatuses.authToken();
             }
@@ -24,12 +22,21 @@ public class ClientMain {
         System.out.println("Thanks for playing!");
     }
 
-    private static PreLoginLoopData processPreLoginLoop(Scanner scanner, ServerFacade server) {
+    private static PreLoginLoopData processPreLoginLoop() {
+        Scanner scanner = new Scanner(System.in);
+        ServerFacade server = new ServerFacade();
         boolean doneWithProgram = false;
         String authToken = null;
         System.out.println("Type the number associated with the action, then press enter. \n");
         System.out.println("1. Help\n2. Quit\n3. Log in\n4. Register");
-        int userResponse = scanner.nextInt();
+        int userResponse = 0;
+        try {
+            userResponse = scanner.nextInt();
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
+            return new PreLoginLoopData(doneWithProgram, authToken);
+        }
         switch (userResponse) {
             case (1):
                 System.out.println("Quit: Exit the program.");
@@ -41,7 +48,7 @@ public class ClientMain {
                 break;
             case (3):
                 System.out.println("Please enter your username.");
-                String loginUsername;
+                String loginUsername = scanner.nextLine();
                 loginUsername = scanner.nextLine();
                 System.out.println("Please enter your password.");
                 String loginPassword = scanner.nextLine();
@@ -50,7 +57,7 @@ public class ClientMain {
                 break;
             case (4):
                 System.out.println("Please enter a username.");
-                String registerUsername;
+                String registerUsername = scanner.nextLine();
                 registerUsername = scanner.nextLine();
                 System.out.println("Please enter a password.");
                 String registerPassword;
@@ -60,14 +67,27 @@ public class ClientMain {
                 UserData registerRequest = new UserData(registerUsername, registerPassword, registerEmail);
                 server.sendRegisterRequest(registerRequest);
                 break;
+            default:
+                System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
+                break;
         }
         return new PreLoginLoopData(doneWithProgram, authToken);
     }
 
-    private static String processLoginLoop(Scanner scanner, ServerFacade server, String authToken) {
+    private static String processLoginLoop(String authToken) {
+        Scanner scanner = new Scanner(System.in);
+        ServerFacade server = new ServerFacade();
+        ChessBoardDrawer drawer = new ChessBoardDrawer();
         System.out.println("Type the number associated with the action, then press enter. \n");
         System.out.println("1. Help\n2. Log out\n3. Create game\n4. List games\n5. Play game\n6. Spectate game");
-        int userResponse = scanner.nextInt();
+        int userResponse = 0;
+        try {
+            userResponse = scanner.nextInt();
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
+            return authToken;
+        }
         switch (userResponse) {
             case (1):
                 System.out.println("Log out: log out of the program and go back to the home screen.");
@@ -89,18 +109,63 @@ public class ClientMain {
                 ArrayList<ListGamesReturnData> listOfGameData = server.sendListGamesRequest();
                 break;
             case(5):
-                System.out.println("Please enter the game ID for the game you wnt to join (List games to find the game ID)");
-                int joinGameID = scanner.nextInt();
-                System.out.println("Please enter the color that you'd like to play.");
-                String color = scanner.nextLine();
-                JoinGameRequest joinGameRequest = new JoinGameRequest(color, joinGameID);
+                boolean choseValidGame = false;
+                int gameID = 0;
+                while (!choseValidGame) {
+                    System.out.println("Which game would you like to join?");
+                    try {
+                        gameID = scanner.nextInt();
+                        choseValidGame = true;
+                    } catch (Exception e) {
+                        System.out.println("That is not a valid option. Please type the number associated with the game you want to join.");
+                        System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
+                    }
+                }
+                boolean choseValidColor = false;
+                String color = "";
+                while (!choseValidColor) {
+                    System.out.println("Which color would you like to play as?");
+                    System.out.println("1. WHITE");
+                    System.out.println("2. BLACK");
+                    int colorChoice = 0;
+                    try {
+                        colorChoice = scanner.nextInt();
+                    } catch (Exception e) {
+                        System.out.println("That is not a valid option. Please type the number associated with the color you want to play.");
+                        continue;
+                    }
+                    if (colorChoice == 1) {
+                        color = "WHITE";
+                        choseValidColor = true;
+                    } else if (colorChoice == 2) {
+                        color = "BLACK";
+                        choseValidColor = true;
+                    } else {
+                        System.out.println("That is not a valid option. Please type the number associated with the color you want to play.");
+                    }
+                }
+                JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
                 server.sendJoinGameRequest(joinGameRequest);
-                // DRAW CHESS BOARD
+                if (color.equals("WHITE")) {
+                    drawer.drawWhitePerspective();
+                }
+                else {
+                    drawer.drawBlackPerspective();
+                }
                 break;
             case(6):
                 System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
-                int spectateGameID = scanner.nextInt();
-                // DRAW CHESS BOARD FOR THE GIVEN ID
+                int spectateGameID = 0;
+                try {
+                    spectateGameID = scanner.nextInt();
+                } catch (Exception e) {
+                    System.out.println("That is not a valid option. Please type the number associated with the game you want to spectate.");
+                    return authToken;
+                }
+                drawer.drawWhitePerspective();
+                break;
+            default:
+                System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
                 break;
         }
         return authToken;
