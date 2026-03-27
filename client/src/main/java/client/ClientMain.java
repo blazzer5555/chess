@@ -120,7 +120,7 @@ public class ClientMain {
                 String gameName = scanner.nextLine();
                 CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
                 try {
-                    int returnGameID = server.sendCreateGameRequest(createGameRequest);
+                    int returnGameID = server.sendCreateGameRequest(createGameRequest, authToken);
                 }
                 catch (Exception e) {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");
@@ -128,7 +128,7 @@ public class ClientMain {
                 break;
             case(4):
                 try {
-                    ArrayList<ListGamesReturnData> listOfGameData = server.sendListGamesRequest();
+                    ArrayList<ListGamesReturnData> listOfGameData = server.sendListGamesRequest(authToken);
                 }
                 catch (Exception e) {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");
@@ -172,7 +172,7 @@ public class ClientMain {
                 }
                 JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
                 try {
-                    server.sendJoinGameRequest(joinGameRequest);
+                    server.sendJoinGameRequest(joinGameRequest, authToken);
                 }
                 catch (Exception e) {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");

@@ -19,19 +19,19 @@ public class ServerFacade {
         communicator.sendLogoutRequest(authToken);
     }
 
-    public int sendCreateGameRequest(CreateGameRequest createGameRequest) throws Exception {
-        return communicator.sendCreateGameRequest(createGameRequest);
+    public int sendCreateGameRequest(CreateGameRequest createGameRequest, String authToken) throws Exception {
+        return communicator.sendCreateGameRequest(createGameRequest, authToken);
     }
 
-    public void sendJoinGameRequest(JoinGameRequest joinGameRequest) throws Exception {
-        communicator.sendJoinGameRequest(joinGameRequest);
+    public void sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
+        communicator.sendJoinGameRequest(joinGameRequest, authToken);
     }
 
-    public ArrayList<ListGamesReturnData> sendListGamesRequest() throws Exception {
-        return communicator.sendListGamesRequest();
+    public ArrayList<ListGamesReturnData> sendListGamesRequest(String authToken) throws Exception {
+        return communicator.sendListGamesRequest(authToken);
     }
 
-    public void sendClearRequest() throws Exception {
+    public void sendClearRequest(String authToken) throws Exception {
         communicator.sendClearRequest();
     }
 }
