@@ -7,32 +7,31 @@ public class ServerFacade {
 
     public static final ServerCommunicator communicator = new ServerCommunicator();
 
-    public void sendRegisterRequest(UserData registerRequest) {
-        communicator.sendRegisterRequest(registerRequest);
+    public String sendRegisterRequest(UserData registerRequest) throws Exception {
+        return communicator.sendRegisterRequest(registerRequest);
     }
 
-    public String sendLoginRequest(LoginRequest loginRequest) {
-        communicator.sendLoginRequest(loginRequest);
-        return "";
+    public String sendLoginRequest(LoginRequest loginRequest) throws Exception {
+        return communicator.sendLoginRequest(loginRequest);
     }
 
-    public void sendLogoutRequest(String authToken) {
+    public void sendLogoutRequest(String authToken) throws Exception {
         communicator.sendLogoutRequest(authToken);
     }
 
-    public void sendCreateGameRequest(CreateGameRequest createGameRequest) {
-        communicator.sendCreateGameRequest(createGameRequest);
+    public int sendCreateGameRequest(CreateGameRequest createGameRequest) throws Exception {
+        return communicator.sendCreateGameRequest(createGameRequest);
     }
 
-    public void sendJoinGameRequest(JoinGameRequest joinGameRequest) {
+    public void sendJoinGameRequest(JoinGameRequest joinGameRequest) throws Exception {
         communicator.sendJoinGameRequest(joinGameRequest);
     }
 
-    public ArrayList<ListGamesReturnData> sendListGamesRequest() {
+    public ArrayList<ListGamesReturnData> sendListGamesRequest() throws Exception {
         return communicator.sendListGamesRequest();
     }
 
-    public void sendClearRequest() {
+    public void sendClearRequest() throws Exception {
         communicator.sendClearRequest();
     }
 }
