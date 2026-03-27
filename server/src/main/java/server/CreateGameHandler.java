@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import model.CreateGameRequest;
+import model.CreateResponse;
 import org.jetbrains.annotations.NotNull;
 import service.CreateGameService;
 
@@ -22,9 +23,7 @@ public class CreateGameHandler implements Handler {
                 } else {
                     int newID = creater.createGame(request.gameName());
                     context.status(200);
-                    record SuccessfullyCreatedResponse(int gameID) {
-                    }
-                    SuccessfullyCreatedResponse response = new SuccessfullyCreatedResponse(newID);
+                    CreateResponse response = new CreateResponse(newID);
                     context.result(gson.toJson(response));
                 }
             } else {
