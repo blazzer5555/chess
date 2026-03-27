@@ -128,7 +128,7 @@ public class ClientMain {
                 break;
             case(4):
                 try {
-                    ArrayList<ListGamesReturnData> listOfGameData = server.sendListGamesRequest(authToken);
+                    ArrayList<ListGamesResponse> listOfGameData = server.sendListGamesRequest(authToken);
                 }
                 catch (Exception e) {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");

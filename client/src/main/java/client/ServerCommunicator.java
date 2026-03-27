@@ -48,18 +48,57 @@ public class ServerCommunicator {
     }
 
     public void sendLogoutRequest(String authToken) throws Exception {
+        String urlString = "http://localhost:8080/session";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(5000))
+                .header("authorization", authToken)
+                .DELETE()
+                .build();
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
 
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+        }
     }
 
     public int sendCreateGameRequest(CreateGameRequest createGameRequest, String authToken) throws Exception {
-        return 0;
+        String urlString = "http://localhost:8080/game";
+        String createBody = gson.toJson(createGameRequest);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(5000))
+                .header("authorization", authToken)
+                .POST(HttpRequest.BodyPublishers.ofString(createBody))
+                .build();
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+            return gson.fromJson(httpResponse.body(), CreateResponse.class).gameID();
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+            return -1;
+        }
     }
 
     public void sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
+        String urlString = "http://localhost:8080/game";
+        String joinBody = gson.toJson(joinGameRequest);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(5000))
+                .header("authorization", authToken)
+                .PUT(HttpRequest.BodyPublishers.ofString(joinBody))
+                .build();
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
 
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+        }
     }
 
-    public ArrayList<ListGamesReturnData> sendListGamesRequest(String authToken) throws Exception {
+    public ArrayList<ListGamesResponse> sendListGamesRequest(String authToken) throws Exception {
         String urlString = "http://localhost:8080/game";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
@@ -68,7 +107,7 @@ public class ServerCommunicator {
                 .GET()
                 .build();
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        record ListResponse(ArrayList<ListGamesReturnData> games) {
+        record ListResponse(ArrayList<ListGamesResponse> games) {
         }
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             ListResponse returnList = gson.fromJson(httpResponse.body(), ListResponse.class);
@@ -79,7 +118,19 @@ public class ServerCommunicator {
         return null;
     }
 
-    public void sendClearRequest() throws Exception {
+    public void sendClearRequest(String authToken) throws Exception {
+        String urlString = "http://localhost:8080/db";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(5000))
+                .header("authorization", authToken)
+                .DELETE()
+                .build();
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
 
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+        }
     }
 }

@@ -27,11 +27,11 @@ public class ServerFacade {
         communicator.sendJoinGameRequest(joinGameRequest, authToken);
     }
 
-    public ArrayList<ListGamesReturnData> sendListGamesRequest(String authToken) throws Exception {
+    public ArrayList<ListGamesResponse> sendListGamesRequest(String authToken) throws Exception {
         return communicator.sendListGamesRequest(authToken);
     }
 
     public void sendClearRequest(String authToken) throws Exception {
-        communicator.sendClearRequest();
+        communicator.sendClearRequest(authToken);
     }
 }
