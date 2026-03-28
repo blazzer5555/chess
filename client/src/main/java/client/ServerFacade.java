@@ -5,33 +5,33 @@ import java.util.ArrayList;
 
 public class ServerFacade {
 
-    public static final ServerCommunicator communicator = new ServerCommunicator();
+    public static final ServerCommunicator COMMUNICATOR = new ServerCommunicator();
 
     public String sendRegisterRequest(UserData registerRequest) throws Exception {
-        return communicator.sendRegisterRequest(registerRequest);
+        return COMMUNICATOR.sendRegisterRequest(registerRequest);
     }
 
     public String sendLoginRequest(LoginRequest loginRequest) throws Exception {
-        return communicator.sendLoginRequest(loginRequest);
+        return COMMUNICATOR.sendLoginRequest(loginRequest);
     }
 
     public void sendLogoutRequest(String authToken) throws Exception {
-        communicator.sendLogoutRequest(authToken);
+        COMMUNICATOR.sendLogoutRequest(authToken);
     }
 
     public int sendCreateGameRequest(CreateGameRequest createGameRequest, String authToken) throws Exception {
-        return communicator.sendCreateGameRequest(createGameRequest, authToken);
+        return COMMUNICATOR.sendCreateGameRequest(createGameRequest, authToken);
     }
 
     public void sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
-        communicator.sendJoinGameRequest(joinGameRequest, authToken);
+        COMMUNICATOR.sendJoinGameRequest(joinGameRequest, authToken);
     }
 
     public ArrayList<ListGamesResponse> sendListGamesRequest(String authToken) throws Exception {
-        return communicator.sendListGamesRequest(authToken);
+        return COMMUNICATOR.sendListGamesRequest(authToken);
     }
 
     public void sendClearRequest(String authToken) throws Exception {
-        communicator.sendClearRequest(authToken);
+        COMMUNICATOR.sendClearRequest(authToken);
     }
 }

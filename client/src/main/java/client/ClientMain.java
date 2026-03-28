@@ -7,6 +7,9 @@ public class ClientMain {
 
     static Map<Integer, Integer> mapOfIDs = new HashMap<>();
     static int maxIDNumber = 1;
+    static final Scanner SCANNER = new Scanner(System.in);
+    static final ServerFacade SERVER = new ServerFacade();
+    static final ChessBoardDrawer DRAWER = new ChessBoardDrawer();
 
     static void main(String[] args) {
         boolean serverStartedCorrectly = populateMapOfIDs();
@@ -30,15 +33,13 @@ public class ClientMain {
     }
 
     private static PreLoginLoopData processPreLoginLoop() {
-        Scanner scanner = new Scanner(System.in);
-        ServerFacade server = new ServerFacade();
         boolean doneWithProgram = false;
         String authToken = null;
         System.out.println("Type the number associated with the action, then press enter. \n");
         System.out.println("1. Help\n2. Quit\n3. Log in\n4. Register");
         int userResponse;
         try {
-            userResponse = scanner.nextInt();
+            userResponse = SCANNER.nextInt();
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -55,13 +56,13 @@ public class ClientMain {
                 break;
             case (3):
                 System.out.println("Please enter your username.");
-                String loginUsername = scanner.nextLine();
-                loginUsername = scanner.nextLine();
+                String loginUsername = SCANNER.nextLine();
+                loginUsername = SCANNER.nextLine();
                 System.out.println("Please enter your password.");
-                String loginPassword = scanner.nextLine();
+                String loginPassword = SCANNER.nextLine();
                 LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
                 try {
-                    authToken = server.sendLoginRequest(loginRequest);
+                    authToken = SERVER.sendLoginRequest(loginRequest);
                 }
                 catch (Exception e) {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");
@@ -69,16 +70,16 @@ public class ClientMain {
                 break;
             case (4):
                 System.out.println("Please enter a username.");
-                String registerUsername = scanner.nextLine();
-                registerUsername = scanner.nextLine();
+                String registerUsername = SCANNER.nextLine();
+                registerUsername = SCANNER.nextLine();
                 System.out.println("Please enter a password.");
                 String registerPassword;
-                registerPassword = scanner.nextLine();
+                registerPassword = SCANNER.nextLine();
                 System.out.println("Please enter the email you'd like to use with this account");
-                String registerEmail = scanner.nextLine();
+                String registerEmail = SCANNER.nextLine();
                 UserData registerRequest = new UserData(registerUsername, registerPassword, registerEmail);
                 try {
-                    authToken = server.sendRegisterRequest(registerRequest);
+                    authToken = SERVER.sendRegisterRequest(registerRequest);
 
                 }
                 catch (Exception e) {
@@ -93,14 +94,11 @@ public class ClientMain {
     }
 
     private static String processLoginLoop(String authToken) {
-        Scanner scanner = new Scanner(System.in);
-        ServerFacade server = new ServerFacade();
-        ChessBoardDrawer drawer = new ChessBoardDrawer();
         System.out.println("Type the number associated with the action, then press enter. \n");
         System.out.println("1. Help\n2. Log out\n3. Create game\n4. List games\n5. Play game\n6. Spectate game");
         int userResponse;
         try {
-            userResponse = scanner.nextInt();
+            userResponse = SCANNER.nextInt();
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -116,19 +114,20 @@ public class ClientMain {
                 break;
             case(2):
                 try {
-                    server.sendLogoutRequest(authToken);
-                                    }
+                    SERVER.sendLogoutRequest(authToken);
+                    return null;
+                }
                 catch (Exception e) {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");
                 }
-                return null;
+                break;
             case(3):
                 System.out.println("What would you like to name your game session?");
-                String gameName = scanner.nextLine();
-                gameName = scanner.nextLine();
+                String gameName = SCANNER.nextLine();
+                gameName = SCANNER.nextLine();
                 CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
                 try {
-                    int returnGameID = server.sendCreateGameRequest(createGameRequest, authToken);
+                    int returnGameID = SERVER.sendCreateGameRequest(createGameRequest, authToken);
                     if (returnGameID != -1) {
                         mapOfIDs.put(maxIDNumber, returnGameID);
                         maxIDNumber++;
@@ -140,7 +139,7 @@ public class ClientMain {
                 break;
             case(4):
                 try {
-                    ArrayList<ListGamesResponse> listOfGameData = server.sendListGamesRequest(authToken);
+                    ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
                     for (int i = 1; i < listOfGameData.size() + 1; i++) {
                         ListGamesResponse currentGame = listOfGameData.get(i - 1);
                         System.out.print(i + ": " + currentGame.gameName() + ". White player is " + currentGame.whiteUsername());
@@ -152,61 +151,13 @@ public class ClientMain {
                 }
                 break;
             case(5):
-                if (mapOfIDs.isEmpty()) {
-                    System.out.println("There are no current games available to join. Please create a new one.");
-                    return authToken;
-                }
-                int gameID;
-                System.out.println("Which game would you like to join?");
-                try {
-                    gameID = scanner.nextInt();
-                    int validID = mapOfIDs.get(gameID);
-                }
-                catch (Exception e) {
-                    System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
-                    System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
-                    return authToken;
-                }
-                String color = "";
-                System.out.println("Which color would you like to play as?");
-                System.out.println("1. WHITE");
-                System.out.println("2. BLACK");
-                int colorChoice;
-                try {
-                    colorChoice = scanner.nextInt();
-                }
-                catch (Exception e) {
-                    System.out.println("That is not a valid input. Please type the number associated with the color you want to play.");
-                    return authToken;
-                }
-                if (colorChoice == 1) {
-                    color = "WHITE";
-                }
-                else if (colorChoice == 2) {
-                    color = "BLACK";
-                }
-                else {
-                    System.out.println("That is not a valid option. Please type \"1\" for white or \"2\" for black.");
-                }
-                JoinGameRequest joinGameRequest = new JoinGameRequest(color, mapOfIDs.get(gameID));
-                try {
-                    server.sendJoinGameRequest(joinGameRequest, authToken);
-                }
-                catch (Exception e) {
-                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
-                }
-                if (color.equals("WHITE")) {
-                    drawer.drawWhitePerspective();
-                }
-                else {
-                    drawer.drawBlackPerspective();
-                }
+                switchCase5InLoggedInLoop(authToken);
                 break;
             case(6):
                 System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
                 int spectateGameID;
                 try {
-                    spectateGameID = scanner.nextInt();
+                    spectateGameID = SCANNER.nextInt();
                     int validID = mapOfIDs.get(spectateGameID);
                 }
                 catch (Exception e) {
@@ -214,13 +165,65 @@ public class ClientMain {
                     System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
                     return authToken;
                 }
-                drawer.drawWhitePerspective();
+                DRAWER.drawWhitePerspective();
                 break;
             default:
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
                 break;
         }
         return authToken;
+    }
+
+    private static void switchCase5InLoggedInLoop(String authToken) {
+        if (mapOfIDs.isEmpty()) {
+            System.out.println("There are no current games available to join. Please create a new one.");
+            return;
+        }
+        int gameID;
+        System.out.println("Which game would you like to join?");
+        try {
+            gameID = SCANNER.nextInt();
+            int validID = mapOfIDs.get(gameID);
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
+            System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
+            return;
+        }
+        String color = "";
+        System.out.println("Which color would you like to play as?");
+        System.out.println("1. WHITE");
+        System.out.println("2. BLACK");
+        int colorChoice;
+        try {
+            colorChoice = SCANNER.nextInt();
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid input. Please type the number associated with the color you want to play.");
+            return;
+        }
+        if (colorChoice == 1) {
+            color = "WHITE";
+        }
+        else if (colorChoice == 2) {
+            color = "BLACK";
+        }
+        else {
+            System.out.println("That is not a valid option. Please type \"1\" for white or \"2\" for black.");
+        }
+        JoinGameRequest joinGameRequest = new JoinGameRequest(color, mapOfIDs.get(gameID));
+        try {
+            SERVER.sendJoinGameRequest(joinGameRequest, authToken);
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+        }
+        if (color.equals("WHITE")) {
+            DRAWER.drawWhitePerspective();
+        }
+        else {
+            DRAWER.drawBlackPerspective();
+        }
     }
 
     private static boolean populateMapOfIDs() {

@@ -10,20 +10,20 @@ import java.util.ArrayList;
 
 public class ServerCommunicator {
 
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final Gson gson = new Gson();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final Gson GSON = new Gson();
 
     public String sendRegisterRequest(UserData registerRequest) throws Exception {
         String urlString = "http://localhost:8080/user";
-        String registerBody = gson.toJson(registerRequest);
+        String registerBody = GSON.toJson(registerRequest);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
                 .timeout(java.time.Duration.ofMillis(5000))
                 .POST(HttpRequest.BodyPublishers.ofString(registerBody))
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-            return gson.fromJson(httpResponse.body(), AuthData.class).authToken();
+            return GSON.fromJson(httpResponse.body(), AuthData.class).authToken();
         } else {
             notifyUserOfProblem(httpResponse, false);
         }
@@ -32,15 +32,15 @@ public class ServerCommunicator {
 
     public String sendLoginRequest(LoginRequest loginRequest) throws Exception {
         String urlString = "http://localhost:8080/session";
-        String loginBody = gson.toJson(loginRequest);
+        String loginBody = GSON.toJson(loginRequest);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
                 .timeout(java.time.Duration.ofMillis(5000))
                 .POST(HttpRequest.BodyPublishers.ofString(loginBody))
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-            return gson.fromJson(httpResponse.body(), AuthData.class).authToken();
+            return GSON.fromJson(httpResponse.body(), AuthData.class).authToken();
         } else {
             notifyUserOfProblem(httpResponse, false);
         }
@@ -55,7 +55,7 @@ public class ServerCommunicator {
                 .header("authorization", authToken)
                 .DELETE()
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
             notifyUserOfProblem(httpResponse, false);
 
@@ -64,16 +64,16 @@ public class ServerCommunicator {
 
     public int sendCreateGameRequest(CreateGameRequest createGameRequest, String authToken) throws Exception {
         String urlString = "http://localhost:8080/game";
-        String createBody = gson.toJson(createGameRequest);
+        String createBody = GSON.toJson(createGameRequest);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
                 .timeout(java.time.Duration.ofMillis(5000))
                 .header("authorization", authToken)
                 .POST(HttpRequest.BodyPublishers.ofString(createBody))
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-            return gson.fromJson(httpResponse.body(), CreateResponse.class).gameID();
+            return GSON.fromJson(httpResponse.body(), CreateResponse.class).gameID();
         } else {
             notifyUserOfProblem(httpResponse, false);
             return -1;
@@ -82,14 +82,14 @@ public class ServerCommunicator {
 
     public void sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
         String urlString = "http://localhost:8080/game";
-        String joinBody = gson.toJson(joinGameRequest);
+        String joinBody = GSON.toJson(joinGameRequest);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
                 .timeout(java.time.Duration.ofMillis(5000))
                 .header("authorization", authToken)
                 .PUT(HttpRequest.BodyPublishers.ofString(joinBody))
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
             notifyUserOfProblem(httpResponse, true);
         }
@@ -103,11 +103,11 @@ public class ServerCommunicator {
                 .header("authorization", authToken)
                 .GET()
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         record ListResponse(ArrayList<ListGamesResponse> games) {
         }
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-            ListResponse returnList = gson.fromJson(httpResponse.body(), ListResponse.class);
+            ListResponse returnList = GSON.fromJson(httpResponse.body(), ListResponse.class);
             return returnList.games();
         } else {
             notifyUserOfProblem(httpResponse, false);
@@ -123,7 +123,7 @@ public class ServerCommunicator {
                 .header("authorization", authToken)
                 .DELETE()
                 .build();
-        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
             notifyUserOfProblem(httpResponse, false);
         }
