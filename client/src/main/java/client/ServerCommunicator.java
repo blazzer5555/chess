@@ -25,7 +25,7 @@ public class ServerCommunicator {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             return gson.fromJson(httpResponse.body(), AuthData.class).authToken();
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            notifyUserOfProblem(httpResponse, false);
         }
         return null;
     }
@@ -42,7 +42,7 @@ public class ServerCommunicator {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             return gson.fromJson(httpResponse.body(), AuthData.class).authToken();
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            notifyUserOfProblem(httpResponse, false);
         }
         return null;
     }
@@ -56,10 +56,9 @@ public class ServerCommunicator {
                 .DELETE()
                 .build();
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+            notifyUserOfProblem(httpResponse, false);
 
-        } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
         }
     }
 
@@ -76,7 +75,7 @@ public class ServerCommunicator {
         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
             return gson.fromJson(httpResponse.body(), CreateResponse.class).gameID();
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            notifyUserOfProblem(httpResponse, false);
             return -1;
         }
     }
@@ -91,10 +90,8 @@ public class ServerCommunicator {
                 .PUT(HttpRequest.BodyPublishers.ofString(joinBody))
                 .build();
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-
-        } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+            notifyUserOfProblem(httpResponse, true);
         }
     }
 
@@ -113,7 +110,7 @@ public class ServerCommunicator {
             ListResponse returnList = gson.fromJson(httpResponse.body(), ListResponse.class);
             return returnList.games();
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            notifyUserOfProblem(httpResponse, false);
         }
         return null;
     }
@@ -127,10 +124,30 @@ public class ServerCommunicator {
                 .DELETE()
                 .build();
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+            notifyUserOfProblem(httpResponse, false);
+        }
+    }
 
-        } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+    private void notifyUserOfProblem(HttpResponse<String> httpResponse, boolean calledFromJoinGame) {
+        switch (httpResponse.statusCode()) {
+            case (400):
+                System.out.println("You didn't enter valid information. Please try again and make sure everything is typed properly.");
+                break;
+            case (401):
+                System.out.println("You are not logged in yet. Please log in before querying the database.");
+                break;
+            case(403):
+                if (calledFromJoinGame) {
+                    System.out.println("That color is already being played by someone. Please choose a different color.");
+                }
+                else {
+                    System.out.println("That username is already taken. Please choose a different one.");
+                }
+                break;
+            case(500):
+                System.out.println("Something went wrong with the server. Please try again later.");
+                break;
         }
     }
 }
