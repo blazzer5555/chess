@@ -135,7 +135,7 @@ public class ServerCommunicator {
                 System.out.println("You didn't enter valid information. Please try again and make sure everything is typed properly.");
                 break;
             case (401):
-                System.out.println("You are not logged in yet. Please log in before querying the database.");
+                System.out.println("The username and/or password is incorrect. Please try again.");
                 break;
             case(403):
                 if (calledFromJoinGame) {
