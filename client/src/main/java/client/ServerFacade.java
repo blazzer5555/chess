@@ -23,8 +23,8 @@ public class ServerFacade {
         return COMMUNICATOR.sendCreateGameRequest(createGameRequest, authToken);
     }
 
-    public void sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
-        COMMUNICATOR.sendJoinGameRequest(joinGameRequest, authToken);
+    public boolean sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
+        return COMMUNICATOR.sendJoinGameRequest(joinGameRequest, authToken);
     }
 
     public ArrayList<ListGamesResponse> sendListGamesRequest(String authToken) throws Exception {

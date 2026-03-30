@@ -80,7 +80,8 @@ public class ServerCommunicator {
         }
     }
 
-    public void sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
+    public boolean sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
+        boolean successfulJoin;
         String urlString = "http://localhost:8080/game";
         String joinBody = GSON.toJson(joinGameRequest);
         HttpRequest request = HttpRequest.newBuilder()
@@ -92,7 +93,12 @@ public class ServerCommunicator {
         HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
             notifyUserOfProblem(httpResponse, true);
+            successfulJoin = false;
         }
+        else {
+            successfulJoin = true;
+        }
+        return successfulJoin;
     }
 
     public ArrayList<ListGamesResponse> sendListGamesRequest(String authToken) throws Exception {

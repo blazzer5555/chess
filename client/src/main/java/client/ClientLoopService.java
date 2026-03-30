@@ -42,7 +42,7 @@ public class ClientLoopService {
         System.out.println("1. Help\n2. Quit\n3. Log in\n4. Register");
         int userResponse;
         try {
-            userResponse = SCANNER.nextInt();
+            userResponse = Integer.parseInt(SCANNER.nextLine());
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -73,7 +73,7 @@ public class ClientLoopService {
         System.out.println("1. Help\n2. Log out\n3. Create game\n4. List games\n5. Play game\n6. Spectate game");
         int userResponse;
         try {
-            userResponse = SCANNER.nextInt();
+            userResponse = Integer.parseInt(SCANNER.nextLine());
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -112,7 +112,6 @@ public class ClientLoopService {
     private PreLoginLoopData register() {
         System.out.println("Please enter a username.");
         String registerUsername = SCANNER.nextLine();
-        registerUsername = SCANNER.nextLine();
         System.out.println("Please enter a password.");
         String registerPassword;
         registerPassword = SCANNER.nextLine();
@@ -132,7 +131,6 @@ public class ClientLoopService {
     private PreLoginLoopData login() {
         System.out.println("Please enter your username.");
         String loginUsername = SCANNER.nextLine();
-        loginUsername = SCANNER.nextLine();
         System.out.println("Please enter your password.");
         String loginPassword = SCANNER.nextLine();
         LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
@@ -150,7 +148,7 @@ public class ClientLoopService {
         System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
         int spectateGameID;
         try {
-            spectateGameID = SCANNER.nextInt();
+            spectateGameID = Integer.parseInt(SCANNER.nextLine());
             int validID = mapOfIDs.get(spectateGameID);
             DRAWER.drawWhitePerspective();
         }
@@ -177,7 +175,6 @@ public class ClientLoopService {
     private void createGame(String authToken) {
         System.out.println("What would you like to name your game session?");
         String gameName = SCANNER.nextLine();
-        gameName = SCANNER.nextLine();
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
         try {
             int returnGameID = SERVER.sendCreateGameRequest(createGameRequest, authToken);
@@ -210,7 +207,7 @@ public class ClientLoopService {
         int gameID;
         System.out.println("Which game would you like to join?");
         try {
-            gameID = SCANNER.nextInt();
+            gameID = Integer.parseInt(SCANNER.nextLine());
             int validID = mapOfIDs.get(gameID);
         }
         catch (Exception e) {
@@ -224,7 +221,7 @@ public class ClientLoopService {
         System.out.println("2. BLACK");
         int colorChoice;
         try {
-            colorChoice = SCANNER.nextInt();
+            colorChoice = Integer.parseInt(SCANNER.nextLine());
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the color you want to play.");
@@ -242,12 +239,13 @@ public class ClientLoopService {
         }
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, mapOfIDs.get(gameID));
         try {
-            SERVER.sendJoinGameRequest(joinGameRequest, authToken);
-            if (color.equals("WHITE")) {
-                DRAWER.drawWhitePerspective();
-            }
-            else {
-                DRAWER.drawBlackPerspective();
+            boolean successfulJoin = SERVER.sendJoinGameRequest(joinGameRequest, authToken);
+            if (successfulJoin) {
+                if (color.equals("WHITE")) {
+                    DRAWER.drawWhitePerspective();
+                } else {
+                    DRAWER.drawBlackPerspective();
+                }
             }
         }
         catch (Exception e) {
