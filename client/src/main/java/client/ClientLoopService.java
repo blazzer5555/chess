@@ -58,35 +58,9 @@ public class ClientLoopService {
                 doneWithProgram = true;
                 break;
             case (3):
-                System.out.println("Please enter your username.");
-                String loginUsername = SCANNER.nextLine();
-                System.out.println("Please enter your password.");
-                String loginPassword = SCANNER.nextLine();
-                LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
-                try {
-                    authToken = SERVER.sendLoginRequest(loginRequest);
-                }
-                catch (Exception e) {
-                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
-                }
-                break;
+                return login();
             case (4):
-                System.out.println("Please enter a username.");
-                String registerUsername = SCANNER.nextLine();
-                System.out.println("Please enter a password.");
-                String registerPassword;
-                registerPassword = SCANNER.nextLine();
-                System.out.println("Please enter the email you'd like to use with this account");
-                String registerEmail = SCANNER.nextLine();
-                UserData registerRequest = new UserData(registerUsername, registerPassword, registerEmail);
-                try {
-                    authToken = SERVER.sendRegisterRequest(registerRequest);
-
-                }
-                catch (Exception e) {
-                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
-                }
-                break;
+                return register();
             default:
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
                 break;
@@ -120,34 +94,13 @@ public class ClientLoopService {
                 createGame(authToken);
                 break;
             case(4):
-                try {
-                    ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
-                    for (int i = 1; i < listOfGameData.size() + 1; i++) {
-                        ListGamesResponse currentGame = listOfGameData.get(i - 1);
-                        System.out.print(i + ": " + currentGame.gameName() + ". White player is " + currentGame.whiteUsername());
-                        System.out.println(", and black player is " + currentGame.blackUsername() + ".");
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
-                }
+                listGames(authToken);
                 break;
             case(5):
                 joinGame(authToken);
                 break;
             case(6):
-                System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
-                int spectateGameID;
-                try {
-                    spectateGameID = SCANNER.nextInt();
-                    int validID = mapOfIDs.get(spectateGameID);
-                }
-                catch (Exception e) {
-                    System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
-                    System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
-                    return authToken;
-                }
-                DRAWER.drawWhitePerspective();
+                spectateGame(authToken);
                 break;
             default:
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -156,9 +109,75 @@ public class ClientLoopService {
         return authToken;
     }
 
+    private PreLoginLoopData register() {
+        System.out.println("Please enter a username.");
+        String registerUsername = SCANNER.nextLine();
+        registerUsername = SCANNER.nextLine();
+        System.out.println("Please enter a password.");
+        String registerPassword;
+        registerPassword = SCANNER.nextLine();
+        System.out.println("Please enter the email you'd like to use with this account");
+        String registerEmail = SCANNER.nextLine();
+        UserData registerRequest = new UserData(registerUsername, registerPassword, registerEmail);
+        try {
+            String authToken = SERVER.sendRegisterRequest(registerRequest);
+            return new PreLoginLoopData(false, authToken);
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            return new PreLoginLoopData(false, null);
+        }
+    }
+
+    private PreLoginLoopData login() {
+        System.out.println("Please enter your username.");
+        String loginUsername = SCANNER.nextLine();
+        loginUsername = SCANNER.nextLine();
+        System.out.println("Please enter your password.");
+        String loginPassword = SCANNER.nextLine();
+        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
+        try {
+            String authToken = SERVER.sendLoginRequest(loginRequest);
+            return new PreLoginLoopData(false, authToken);
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            return new PreLoginLoopData(false, null);
+        }
+    }
+
+    private void spectateGame(String authToken) {
+        System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
+        int spectateGameID;
+        try {
+            spectateGameID = SCANNER.nextInt();
+            int validID = mapOfIDs.get(spectateGameID);
+            DRAWER.drawWhitePerspective();
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
+            System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
+        }
+    }
+
+    private void listGames(String authToken) {
+        try {
+            ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
+            for (int i = 1; i < listOfGameData.size() + 1; i++) {
+                ListGamesResponse currentGame = listOfGameData.get(i - 1);
+                System.out.print(i + ": " + currentGame.gameName() + ". White player is " + currentGame.whiteUsername());
+                System.out.println(", and black player is " + currentGame.blackUsername() + ".");
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+        }
+    }
+
     private void createGame(String authToken) {
         System.out.println("What would you like to name your game session?");
         String gameName = SCANNER.nextLine();
+        gameName = SCANNER.nextLine();
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
         try {
             int returnGameID = SERVER.sendCreateGameRequest(createGameRequest, authToken);
@@ -219,19 +238,20 @@ public class ClientLoopService {
         }
         else {
             System.out.println("That is not a valid option. Please type \"1\" for white or \"2\" for black.");
+            return;
         }
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, mapOfIDs.get(gameID));
         try {
             SERVER.sendJoinGameRequest(joinGameRequest, authToken);
+            if (color.equals("WHITE")) {
+                DRAWER.drawWhitePerspective();
+            }
+            else {
+                DRAWER.drawBlackPerspective();
+            }
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
-        }
-        if (color.equals("WHITE")) {
-            DRAWER.drawWhitePerspective();
-        }
-        else {
-            DRAWER.drawBlackPerspective();
         }
     }
 
