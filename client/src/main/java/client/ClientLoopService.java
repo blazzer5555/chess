@@ -215,7 +215,7 @@ public class ClientLoopService {
             System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
             return;
         }
-        String color = "";
+        String color;
         System.out.println("Which color would you like to play as?");
         System.out.println("1. WHITE");
         System.out.println("2. BLACK");
