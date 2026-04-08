@@ -163,8 +163,21 @@ public class ClientLoopService {
             ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
             for (int i = 1; i < listOfGameData.size() + 1; i++) {
                 ListGamesResponse currentGame = listOfGameData.get(i - 1);
-                System.out.print(i + ": " + currentGame.gameName() + ". White player is " + currentGame.whiteUsername());
-                System.out.println(", and black player is " + currentGame.blackUsername() + ".");
+                String variableWhitePlayer;
+                String variableBlackPlayer;
+                if (currentGame.whiteUsername() == null) {
+                    variableWhitePlayer = "Nobody is currently playing white.";
+                }
+                else {
+                    variableWhitePlayer = "White player is " + currentGame.whiteUsername() + ".";
+                }
+                if (currentGame.blackUsername() == null) {
+                    variableBlackPlayer = "Nobody is currently playing white.";
+                }
+                else {
+                    variableBlackPlayer = "Black player is " + currentGame.blackUsername() + ".";
+                }
+                System.out.println(i + ": " + currentGame.gameName() + ". " + variableWhitePlayer + " " + variableBlackPlayer);
             }
         }
         catch (Exception e) {
