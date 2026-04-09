@@ -22,6 +22,7 @@ public class EscapeSequences {
     public static final String RESET_TEXT_BLINKING = UNICODE_ESCAPE + "[25m";
 
     private static final String SET_TEXT_COLOR = UNICODE_ESCAPE + "[38;5;";
+    private static final String SET_TEXT_COLOR_RGB = UNICODE_ESCAPE + "[38;2;";
     private static final String SET_BG_COLOR = UNICODE_ESCAPE + "[48;5;";
     private static final String SET_BG_COLOR_RGB = UNICODE_ESCAPE + "[48;2;";
 
@@ -34,6 +35,8 @@ public class EscapeSequences {
     public static final String SET_TEXT_COLOR_BLUE = SET_TEXT_COLOR + "12m";
     public static final String SET_TEXT_COLOR_MAGENTA = SET_TEXT_COLOR + "5m";
     public static final String SET_TEXT_COLOR_WHITE = SET_TEXT_COLOR + "15m";
+    public static final String SET_TEXT_COLOR_BROWN = SET_TEXT_COLOR_RGB + "140;105;60m";
+    public static final String SET_TEXT_COLOR_TAN = SET_TEXT_COLOR_RGB + "215;182;143m";
     public static final String RESET_TEXT_COLOR = UNICODE_ESCAPE + "[39m";
 
     public static final String SET_BG_COLOR_BLACK = SET_BG_COLOR + "0m";
