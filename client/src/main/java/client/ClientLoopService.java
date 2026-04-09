@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+//Make a move on the chess board in the form of \"[Position of piece you want to move] " +
+//                        "[Location where you want it to move]\". For example, \"e2 e4\"");
+
 public class ClientLoopService {
 
     Map<Integer, Integer> mapOfIDs = new HashMap<>();
@@ -22,20 +25,28 @@ public class ClientLoopService {
         }
         System.out.println("Did someone ask to play chess?");
         boolean doneWithProgram = false;
+        boolean playingGame = false;
         String authToken = null;
         while (!doneWithProgram) {
             if (authToken != null) {
-                authToken = processLoginLoop(authToken);
+                if (!playingGame) {
+                    LoginLoopData loginLoopData = loginLoop(authToken);
+                    authToken = loginLoopData.authToken();
+                    playingGame = loginLoopData.playingGame();
+                }
+                else {
+                    LoginLoopData gameplayLoopData = gameplayLoop(authToken);
+                }
             }
             else {
-                PreLoginLoopData userStatuses = processPreLoginLoop();
+                PreLoginLoopData userStatuses = preLoginLoop();
                 doneWithProgram = userStatuses.doneWithProgram();
                 authToken = userStatuses.authToken();
             }
         }
         System.out.println("Thanks for playing!");
     }
-    private PreLoginLoopData processPreLoginLoop() {
+    private PreLoginLoopData preLoginLoop() {
         boolean doneWithProgram = false;
         String authToken = null;
         System.out.println("Type the number associated with the action, then press enter. \n");
@@ -68,7 +79,7 @@ public class ClientLoopService {
         return new PreLoginLoopData(doneWithProgram, authToken);
     }
 
-    private String processLoginLoop(String authToken) {
+    private LoginLoopData loginLoop(String authToken) {
         System.out.println("Type the number associated with the action, then press enter. \n");
         System.out.println("1. Help\n2. Log out\n3. Create game\n4. List games\n5. Play game\n6. Spectate game");
         int userResponse;
@@ -77,19 +88,18 @@ public class ClientLoopService {
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
-            return authToken;
+            return new LoginLoopData(authToken, false);
         }
         switch (userResponse) {
             case (1):
-                System.out.println("Log out: log out of the program and go back to the home screen.");
+                System.out.println("Log out: Log out of the program and go back to the home screen.");
                 System.out.println("Create game: Create a new chess game. You will have to join the game separately.");
                 System.out.println("List games: List all the games currently available, along with their IDs, and who's playing which color.");
-                System.out.println("Play game: Join a game as either the white or black player");
+                System.out.println("Play game: Join a game as either the white or black player.");
                 System.out.println("Spectate game: Observe a game that is being played by other players.");
                 break;
             case(2):
-                authToken = logout(authToken);
-                break;
+                return logout(authToken);
             case(3):
                 createGame(authToken);
                 break;
@@ -97,8 +107,7 @@ public class ClientLoopService {
                 listGames(authToken);
                 break;
             case(5):
-                joinGame(authToken);
-                break;
+                return joinGame(authToken);
             case(6):
                 spectateGame(authToken);
                 break;
@@ -106,7 +115,63 @@ public class ClientLoopService {
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
                 break;
         }
-        return authToken;
+        return new LoginLoopData(authToken, false);
+    }
+
+    private LoginLoopData gameplayLoop(String authToken) {
+        System.out.println("Type the number associated with the action, then press enter. \n");
+        System.out.println("1. Help\n2. Redraw chess board\n3. Leave game\n4. Make move\n5. Resign\n6. Highlight legal moves");
+        int userResponse;
+        try {
+            userResponse = Integer.parseInt(SCANNER.nextLine());
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
+            return new LoginLoopData(authToken, true);
+        }
+        switch (userResponse) {
+            case (1):
+                System.out.println("Redraw chess board: Redraws the chess board so you don't have to keep scrolling back up to see it.");
+                System.out.println("Leave game: This will make you leave the game, but players can join the open spot, including you.");
+                System.out.print("Make move: If it's your turn, make a move on the board.");
+                System.out.println("Resign: Forfeit the game. This results in you losing and nobody else being able to makes further moves.");
+                System.out.println("Highlight legal moves: Given a place on the board, highlight all the legal moves that piece can make.");
+                break;
+            case(2):
+                redrawBoard();
+                break;
+            case(3):
+                return leaveGame(authToken);
+            case(4):
+                makeMove(authToken);
+                break;
+            case(5):
+                return resign(authToken);
+            case(6):
+                highlightLegalMoves(authToken);
+                break;
+            default:
+                System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
+                break;
+        }
+        return null;
+    }
+
+    private void highlightLegalMoves(String authToken) {
+    }
+
+    private LoginLoopData resign(String authToken) {
+        return null;
+    }
+
+    private void makeMove(String authToken) {
+    }
+
+    private LoginLoopData leaveGame(String authToken) {
+        return null;
+    }
+
+    private void redrawBoard() {
     }
 
     private PreLoginLoopData register() {
@@ -201,21 +266,21 @@ public class ClientLoopService {
         }
     }
 
-    private String logout(String authToken) {
+    private LoginLoopData logout(String authToken) {
         try {
             SERVER.sendLogoutRequest(authToken);
-            return null;
+            return new LoginLoopData(null, false);
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
-            return authToken;
+            return new LoginLoopData(authToken, false);
         }
     }
 
-    private void joinGame(String authToken) {
+    private LoginLoopData joinGame(String authToken) {
         if (mapOfIDs.isEmpty()) {
             System.out.println("There are no current games available to join. Please create a new one.");
-            return;
+            return new LoginLoopData(authToken, false);
         }
         int gameID;
         System.out.println("Which game would you like to join?");
@@ -226,7 +291,7 @@ public class ClientLoopService {
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
             System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
-            return;
+            return new LoginLoopData(authToken, false);
         }
         String color;
         System.out.println("Which color would you like to play as?");
@@ -238,7 +303,7 @@ public class ClientLoopService {
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the color you want to play.");
-            return;
+            return new LoginLoopData(authToken, false);
         }
         if (colorChoice == 1) {
             color = "WHITE";
@@ -248,7 +313,7 @@ public class ClientLoopService {
         }
         else {
             System.out.println("That is not a valid option. Please type \"1\" for white or \"2\" for black.");
-            return;
+            return new LoginLoopData(authToken, false);
         }
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, mapOfIDs.get(gameID));
         try {
@@ -259,11 +324,14 @@ public class ClientLoopService {
                 } else {
                     DRAWER.drawBlackPerspective();
                 }
+                return new LoginLoopData(authToken, true);
             }
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            return new LoginLoopData(authToken, false);
         }
+        return new LoginLoopData(authToken, false);
     }
 
     private boolean populateMapOfIDs() {
