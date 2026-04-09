@@ -17,6 +17,16 @@ public class ClientLoopService {
     final Scanner SCANNER = new Scanner(System.in);
     final ServerFacade SERVER = new ServerFacade();
     final ChessBoardDrawer DRAWER = new ChessBoardDrawer();
+    WebsocketClient wsClient;
+
+    public ClientLoopService() {
+        try {
+            wsClient = new WebsocketClient();
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong trying to create a websocket");
+        }
+    }
 
     public void runLoop() {
         boolean serverStartedCorrectly = populateMapOfIDs();
@@ -35,7 +45,7 @@ public class ClientLoopService {
                     playingGame = loginLoopData.playingGame();
                 }
                 else {
-                    LoginLoopData gameplayLoopData = gameplayLoop(authToken);
+                    playingGame = gameplayLoop(authToken);
                 }
             }
             else {
@@ -118,7 +128,7 @@ public class ClientLoopService {
         return new LoginLoopData(authToken, false);
     }
 
-    private LoginLoopData gameplayLoop(String authToken) {
+    private boolean gameplayLoop(String authToken) {
         System.out.println("Type the number associated with the action, then press enter. \n");
         System.out.println("1. Help\n2. Redraw chess board\n3. Leave game\n4. Make move\n5. Resign\n6. Highlight legal moves");
         int userResponse;
@@ -127,7 +137,7 @@ public class ClientLoopService {
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
-            return new LoginLoopData(authToken, true);
+            return true;
         }
         switch (userResponse) {
             case (1):
@@ -154,21 +164,21 @@ public class ClientLoopService {
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
                 break;
         }
-        return null;
+        return true;
     }
 
     private void highlightLegalMoves(String authToken) {
     }
 
-    private LoginLoopData resign(String authToken) {
-        return null;
+    private boolean resign(String authToken) {
+        return false;
     }
 
     private void makeMove(String authToken) {
     }
 
-    private LoginLoopData leaveGame(String authToken) {
-        return null;
+    private boolean leaveGame(String authToken) {
+        return false;
     }
 
     private void redrawBoard() {
@@ -215,7 +225,7 @@ public class ClientLoopService {
         try {
             spectateGameID = Integer.parseInt(SCANNER.nextLine());
             int validID = mapOfIDs.get(spectateGameID);
-            DRAWER.drawWhitePerspective();
+            DRAWER.drawWhitePerspective(null);
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
@@ -320,9 +330,9 @@ public class ClientLoopService {
             boolean successfulJoin = SERVER.sendJoinGameRequest(joinGameRequest, authToken);
             if (successfulJoin) {
                 if (color.equals("WHITE")) {
-                    DRAWER.drawWhitePerspective();
+                    DRAWER.drawWhitePerspective(null);
                 } else {
-                    DRAWER.drawBlackPerspective();
+                    DRAWER.drawBlackPerspective(null);
                 }
                 return new LoginLoopData(authToken, true);
             }
