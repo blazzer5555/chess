@@ -11,8 +11,9 @@ import java.util.*;
 
 public class DatabaseGameDAO {
 
+    private final Gson GSON = new Gson();
+
     public int createGame(String gameName) throws SQLException, DataAccessException {
-        Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String createStatement = "INSERT INTO gamedata(gamedata, gamename) values (?, ?)";
             try (var preparedStatement1 = conn.prepareStatement(createStatement, Statement.RETURN_GENERATED_KEYS)) {
@@ -24,7 +25,7 @@ public class DatabaseGameDAO {
                 if (resultSet.next()) {
                     gameID = resultSet.getInt(1);
                     GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
-                    String serializedGameData = gson.toJson(gameData);
+                    String serializedGameData = GSON.toJson(gameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, serializedGameData);
@@ -39,7 +40,6 @@ public class DatabaseGameDAO {
     }
 
     public GameData getGameByID(int gameID) throws SQLException, DataAccessException {
-        Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE id = ?";
             try (var preparedStatement = conn.prepareStatement(getStatement)) {
@@ -48,7 +48,7 @@ public class DatabaseGameDAO {
                 var serializedGameData = "";
                 if (rs.next()) {
                     serializedGameData = rs.getString(1);
-                    return gson.fromJson(serializedGameData, GameData.class);
+                    return GSON.fromJson(serializedGameData, GameData.class);
                 }
             }
         }
@@ -56,7 +56,6 @@ public class DatabaseGameDAO {
     }
 
     public GameData getGameByName(String name) throws SQLException, DataAccessException {
-        Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE gamename = ?";
             try (var preparedStatement = conn.prepareStatement(getStatement)) {
@@ -65,7 +64,7 @@ public class DatabaseGameDAO {
                 var serializedGameData = "";
                 if (rs.next()) {
                     serializedGameData = rs.getString(1);
-                    return gson.fromJson(serializedGameData, GameData.class);
+                    return GSON.fromJson(serializedGameData, GameData.class);
                 }
             }
         }
@@ -74,7 +73,6 @@ public class DatabaseGameDAO {
 
     public List<GameData> listGames() throws SQLException, DataAccessException {
         List<GameData> gameList = new ArrayList<>();
-        Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata";
             try (var preparedStatement = conn.prepareStatement(getStatement)) {
@@ -82,15 +80,26 @@ public class DatabaseGameDAO {
                 while(rs.next()) {
                     var serializedGameData = "";
                     serializedGameData = rs.getString(1);
-                    gameList.add(gson.fromJson(serializedGameData, GameData.class));
+                    gameList.add(GSON.fromJson(serializedGameData, GameData.class));
                 }
             }
         }
         return gameList;
     }
 
+    public void updateGame(GameData gameData) throws Exception {
+        var newSerializedGameData = GSON.toJson(gameData);
+        try (var conn = DatabaseManager.getConnection()) {
+            String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
+            try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
+                preparedStatement2.setString(1, newSerializedGameData);
+                preparedStatement2.setInt(2, gameData.gameID());
+                preparedStatement2.executeUpdate();
+            }
+        }
+    }
+
     public void joinPlayer(JoinGameRequest request, String authToken) throws SQLException, DataAccessException {
-        Gson gson = new Gson();
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE id = ?";
@@ -100,7 +109,7 @@ public class DatabaseGameDAO {
                 var oldSerializedGameData = "";
                 if (rs.next()) {
                     oldSerializedGameData = rs.getString(1);
-                    GameData oldGameData = gson.fromJson(oldSerializedGameData, GameData.class);
+                    GameData oldGameData = GSON.fromJson(oldSerializedGameData, GameData.class);
                     GameData newGameData;
                     String playerUsername = authDAO.getAuthByAuthToken(authToken).username();
                     if (Objects.equals(request.playerColor(), "WHITE")) {
@@ -111,7 +120,7 @@ public class DatabaseGameDAO {
                         newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(),
                                 playerUsername, oldGameData.gameName(), oldGameData.game());
                     }
-                    var newSerializedGameData = gson.toJson(newGameData);
+                    var newSerializedGameData = GSON.toJson(newGameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, newSerializedGameData);
@@ -124,7 +133,6 @@ public class DatabaseGameDAO {
     }
 
     public void leavePlayer(JoinGameRequest request) throws SQLException, DataAccessException {
-        Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE id = ?";
             try (var preparedStatement = conn.prepareStatement(getStatement)) {
@@ -133,7 +141,7 @@ public class DatabaseGameDAO {
                 var oldSerializedGameData = "";
                 if (rs.next()) {
                     oldSerializedGameData = rs.getString(1);
-                    GameData oldGameData = gson.fromJson(oldSerializedGameData, GameData.class);
+                    GameData oldGameData = GSON.fromJson(oldSerializedGameData, GameData.class);
                     GameData newGameData;
                     if (Objects.equals(request.playerColor(), "WHITE")) {
                         newGameData = new GameData(oldGameData.gameID(), null,
@@ -143,7 +151,7 @@ public class DatabaseGameDAO {
                         newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(),
                                 null, oldGameData.gameName(), oldGameData.game());
                     }
-                    var newSerializedGameData = gson.toJson(newGameData);
+                    var newSerializedGameData = GSON.toJson(newGameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, newSerializedGameData);
