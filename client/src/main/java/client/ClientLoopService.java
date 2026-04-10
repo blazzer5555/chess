@@ -237,6 +237,10 @@ public class ClientLoopService {
     private void listGames(String authToken) {
         try {
             ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
+            if (listOfGameData.isEmpty()) {
+                System.out.println("There are no current games. Create a game first.");
+                return;
+            }
             for (int i = 1; i < listOfGameData.size() + 1; i++) {
                 ListGamesResponse currentGame = listOfGameData.get(i - 1);
                 String variableWhitePlayer;
@@ -248,7 +252,7 @@ public class ClientLoopService {
                     variableWhitePlayer = "White player is " + currentGame.whiteUsername() + ".";
                 }
                 if (currentGame.blackUsername() == null) {
-                    variableBlackPlayer = "Nobody is currently playing white.";
+                    variableBlackPlayer = "Nobody is currently playing black.";
                 }
                 else {
                     variableBlackPlayer = "Black player is " + currentGame.blackUsername() + ".";
