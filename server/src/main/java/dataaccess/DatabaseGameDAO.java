@@ -38,7 +38,7 @@ public class DatabaseGameDAO {
         return -1;
     }
 
-    public GameData getGameByID(int gameID) throws SQLException, DataAccessException{
+    public GameData getGameByID(int gameID) throws SQLException, DataAccessException {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE id = ?";
@@ -55,7 +55,7 @@ public class DatabaseGameDAO {
         return null;
     }
 
-    public GameData getGameByName(String name) throws SQLException, DataAccessException{
+    public GameData getGameByName(String name) throws SQLException, DataAccessException {
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "SELECT gamedata FROM gamedata WHERE gamename = ?";
@@ -72,7 +72,7 @@ public class DatabaseGameDAO {
         return null;
     }
 
-    public List<GameData> listGames() throws SQLException, DataAccessException{
+    public List<GameData> listGames() throws SQLException, DataAccessException {
         List<GameData> gameList = new ArrayList<>();
         Gson gson = new Gson();
         try (var conn = DatabaseManager.getConnection()) {
@@ -89,7 +89,7 @@ public class DatabaseGameDAO {
         return gameList;
     }
 
-    public void joinPlayer(JoinGameRequest request, String authToken) throws SQLException, DataAccessException{
+    public void joinPlayer(JoinGameRequest request, String authToken) throws SQLException, DataAccessException {
         Gson gson = new Gson();
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         try (var conn = DatabaseManager.getConnection()) {
@@ -123,7 +123,39 @@ public class DatabaseGameDAO {
         }
     }
 
-    public void clear() throws SQLException, DataAccessException{
+    public void leavePlayer(JoinGameRequest request) throws SQLException, DataAccessException {
+        Gson gson = new Gson();
+        try (var conn = DatabaseManager.getConnection()) {
+            String getStatement = "SELECT gamedata FROM gamedata WHERE id = ?";
+            try (var preparedStatement = conn.prepareStatement(getStatement)) {
+                preparedStatement.setInt(1, request.gameID());
+                ResultSet rs = preparedStatement.executeQuery();
+                var oldSerializedGameData = "";
+                if (rs.next()) {
+                    oldSerializedGameData = rs.getString(1);
+                    GameData oldGameData = gson.fromJson(oldSerializedGameData, GameData.class);
+                    GameData newGameData;
+                    if (Objects.equals(request.playerColor(), "WHITE")) {
+                        newGameData = new GameData(oldGameData.gameID(), null,
+                                oldGameData.blackUsername(), oldGameData.gameName(), oldGameData.game());
+                    }
+                    else {
+                        newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(),
+                                null, oldGameData.gameName(), oldGameData.game());
+                    }
+                    var newSerializedGameData = gson.toJson(newGameData);
+                    String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
+                    try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
+                        preparedStatement2.setString(1, newSerializedGameData);
+                        preparedStatement2.setInt(2, oldGameData.gameID());
+                        preparedStatement2.executeUpdate();
+                    }
+                }
+            }
+        }
+    }
+
+    public void clear() throws SQLException, DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM gamedata")) {
                 preparedStatement.executeUpdate();
@@ -131,7 +163,7 @@ public class DatabaseGameDAO {
         }
     }
 
-    public void deleteGame(int gameID) throws SQLException, DataAccessException{
+    public void deleteGame(int gameID) throws SQLException, DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             String getStatement = "DELETE FROM gamedata WHERE id = ?";
             try (var preparedStatement = conn.prepareStatement(getStatement)) {
