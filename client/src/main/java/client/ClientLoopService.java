@@ -1,5 +1,8 @@
 package client;
 
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import model.*;
 import websocket.commands.UserGameCommand;
 
@@ -167,7 +170,106 @@ public class ClientLoopService {
     }
 
     private void makeMove(String authToken, int gameID) {
+        System.out.println("Please enter your move. It should be in the format similar to \"e2 f4\".\n" +
+                "The first position is location of the piece you want to move. The second location is where you want to move it.\n" +
+                "If this move would promote a pawn, add a space and the letter corresponding to the piece you want to promote " +
+                "(n for knight, q for queen etc.).");
+        String userMove = SCANNER.nextLine();
+        ChessMove move = parseInputForMove(userMove);
+        if (move == null) {
+            return;
+        }
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, mapOfIDs.get(gameID), move);
+        try {
+            SERVER.sendWebsocketRequest(command);
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the websocket connection.");
+        }
+    }
 
+    private ChessMove parseInputForMove(String userMove) {
+        char userFirstCol;
+        char userFirstRow;
+        char userSecondCol;
+        char userSecondRow;
+        try {
+            userFirstCol = userMove.charAt(0);
+            userFirstRow = userMove.charAt(1);
+            userSecondCol = userMove.charAt(3);
+            userSecondRow = userMove.charAt(4);
+        }
+        catch (Exception e) {
+            System.out.println("That is not a valid format. Please try again and read the instructions.");
+            return null;
+        }
+        ChessPiece.PieceType pieceType = null;
+        if (userMove.length() >= 7) {
+            char pieceLetter = userMove.charAt(6);
+            pieceType = switch(pieceLetter) {
+                case ('q') -> ChessPiece.PieceType.QUEEN;
+                case ('n') -> ChessPiece.PieceType.KNIGHT;
+                case ('b') -> ChessPiece.PieceType.BISHOP;
+                case ('r') -> ChessPiece.PieceType.ROOK;
+                default -> ChessPiece.PieceType.KING;
+            };
+            if (pieceType == ChessPiece.PieceType.KING) {
+                System.out.println("That is not a valid letter for a piece to promote to. " +
+                        "'q' is for queen, 'n' is for knight, 'b' is for bishop, and 'r' is for rook.");
+                return null;
+            }
+        }
+        int firstColIndex = convertColToInt(userFirstCol);
+        if (firstColIndex == 9) {
+            System.out.println("Your first location's letter is not a letter on the board.");
+            return null;
+        }
+        int secondColIndex = convertColToInt(userSecondCol);
+        if (secondColIndex == 9) {
+            System.out.println("Your second location's letter is not a letter on the board.");
+            return null;
+        }
+        int firstRowIndex = convertRowToInt(userFirstRow);
+        if (firstRowIndex == 9) {
+            System.out.println("Your first location's number is not a number on the board.");
+            return null;
+        }
+        int secondRowIndex = convertRowToInt(userSecondRow);
+        if (secondRowIndex == 9) {
+            System.out.println("Your second location's number is not a number on the board.");
+            return null;
+        }
+        ChessPosition startPosition = new ChessPosition(firstRowIndex, firstColIndex);
+        ChessPosition endPosition = new ChessPosition(secondRowIndex, secondColIndex);
+        return new ChessMove(startPosition, endPosition, pieceType);
+    }
+
+    private int convertRowToInt(char userRow) {
+        return switch (userRow) {
+            case ('1') -> 1;
+            case ('2') -> 2;
+            case ('3') -> 3;
+            case ('4') -> 4;
+            case ('5') -> 5;
+            case ('6') -> 6;
+            case ('7') -> 7;
+            case ('8') -> 8;
+            default -> 9;
+        };
+    }
+
+    private int convertColToInt(char userCol) {
+        return switch (userCol) {
+            case ('a') -> 1;
+            case ('b') -> 2;
+            case ('c') -> 3;
+            case ('d') -> 4;
+            case ('e') -> 5;
+            case ('f') -> 6;
+            case ('g') -> 7;
+            case ('h') -> 8;
+            default -> 9;
+        };
     }
 
     private int leaveGame(String authToken, int gameID) {
