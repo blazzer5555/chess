@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, WsCloseHandler {
 
     final Gson GSON = new Gson();
-    public final ConcurrentHashMap<Integer, Set<Session>> sessionHolder = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Session, Integer> sessionHolder = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, Session> authTokenToSession = new ConcurrentHashMap<>();
 
     @Override
@@ -33,6 +33,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     @Override
     public void handleMessage(@NotNull WsMessageContext ctx) {
+        System.out.println("Got to handle message function call.");
         UserGameCommand command = GSON.fromJson(ctx.message(), UserGameCommand.class);
         if (command.getCommandType() == UserGameCommand.CommandType.CONNECT) {
             handleConnection(ctx, command);
@@ -62,19 +63,9 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             }
             JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
             gameDAO.leavePlayer(request);
-            try {
-                Session sessionToDelete = authTokenToSession.get(command.getAuthToken());
-                authTokenToSession.remove(command.getAuthToken());
-                sessionHolder.get(command.getGameID()).remove(sessionToDelete);
-            }
-            catch (Exception e) {
-                String errorMessage = "There was an error related to the websocket.";
-                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                        errorMessage, "", null, null);
-                String serializedMessage = GSON.toJson(message);
-                ctx.send(serializedMessage);
-                return;
-            }
+            Session sessionToDelete = authTokenToSession.get(command.getAuthToken());
+            authTokenToSession.remove(command.getAuthToken());
+            sessionHolder.remove(sessionToDelete);
             String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                     "", notificationMessage, null, null);
@@ -91,25 +82,19 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
     }
 
     private void handleConnection(WsMessageContext ctx, UserGameCommand command) {
+        System.out.println("Got to handleConnection function call.");
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         try {
             GameData gameData = gameDAO.getGameByID(command.getGameID());
+            System.out.println("getGamebyID passed.");
             ChessGame game = gameData.game();
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
-            try {
-                Session session = ctx.session;
-                sessionHolder.get(command.getGameID()).add(session);
-                authTokenToSession.put(command.getAuthToken(), session);
-            }
-            catch (Exception e) {
-                String errorMessage = "There was an error related to the websocket.";
-                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                        errorMessage, "", null, null);
-                String serializedMessage = GSON.toJson(message);
-                ctx.send(serializedMessage);
-                return;
-            }
+            System.out.println("getUsername passed.");
+            sessionHolder.put(ctx.session, command.getGameID());
+            System.out.println("Added session to sessionHolder.");
+            authTokenToSession.put(command.getAuthToken(), ctx.session);
+            System.out.println("Added authToken session pair.");
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
@@ -117,16 +102,20 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             else {
                 color = "BLACK";
             }
+            System.out.println("Got past the stuff that could trip the try block.");
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", "", game, color);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
+            System.out.println("ctx.send was executed.");
         }
         catch (Exception e) {
+            System.out.println("Catch was thrown instead.");
             String errorMessage = "There was an error when trying to access the database.";
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
                     errorMessage, "", null, null);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
+            System.out.println("ctx.send was sent from catch block.");
         }
     }
 }

@@ -177,7 +177,7 @@ public class ClientLoopService {
             return 0;
         }
         catch (Exception e) {
-            System.out.println("Something went wrong trying to leave the game. Please try again later, or ctrl c.");
+            System.out.println("Something went wrong trying to leave the game. Please try again later.");
             return gameID;
         }
     }
@@ -338,15 +338,15 @@ public class ClientLoopService {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
             return new LoginLoopData(authToken, 0);
         }
-        try {
-            if (successfulJoin) {
+        if (successfulJoin) {
+            try {
                 UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID));
                 SERVER.sendWebsocketRequest(command);
                 return new LoginLoopData(authToken, gameID);
             }
-        }
-        catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the websocket connection.");
+            catch (Exception e) {
+                System.out.println("Sorry, something went wrong with the websocket connection.");
+            }
         }
         return new LoginLoopData(authToken, 0);
     }
