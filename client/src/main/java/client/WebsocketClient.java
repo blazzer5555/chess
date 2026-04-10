@@ -27,20 +27,22 @@ public class WebsocketClient extends Endpoint{
 
         this.session.addMessageHandler(new MessageHandler.Whole<String>() {
             public void onMessage(String message) {
-                System.out.println("OnMessage was called.");
                 ServerMessage deserializedMessage = GSON.fromJson(message, ServerMessage.class);
                 if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-                    System.out.println("The message type was recognized as LOAD_GAME");
                     if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
-                        System.out.println("The color was white.");
                         DRAWER.drawWhitePerspective(deserializedMessage.getGame().getBoard());
                     } else {
-                        System.out.println("The color was black.");
                         DRAWER.drawBlackPerspective(deserializedMessage.getGame().getBoard());
                     }
                 }
                 else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
                     System.out.println(deserializedMessage.getNotificationMessage());
+                }
+                else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
+                    System.out.println(deserializedMessage.getErrorMessage());
+                }
+                else {
+                    System.out.println("I don't know what happened, but nothing's broken I guess?");
                 }
             }
             //When this receives a message from the server, check what the message is, then do the appropriate action.
