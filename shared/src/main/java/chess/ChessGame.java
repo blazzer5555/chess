@@ -83,10 +83,10 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece pieceToMove = board.getPiece(move.getStartPosition());
         if (pieceToMove == null) {
-            throw new InvalidMoveException("There is no piece at that location");
+            throw new InvalidMoveException("There is no piece at that location!");
         }
         if (pieceToMove.getTeamColor() != playerTurn) {
-            throw new InvalidMoveException("It is not this your turn");
+            throw new InvalidMoveException("It is not your turn!");
         }
         Collection<ChessMove> possibleMoves = validMoves(move.getStartPosition());
         for (ChessMove potentialMove: possibleMoves) {
@@ -108,7 +108,7 @@ public class ChessGame {
                 return;
             }
         }
-        throw new InvalidMoveException("That piece cannot make that move");
+        throw new InvalidMoveException("That piece cannot make that move!");
     }
 
     /**
