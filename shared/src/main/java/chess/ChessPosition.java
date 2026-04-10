@@ -17,6 +17,21 @@ public class ChessPosition {
         this.col = col;
     }
 
+    public String print() {
+        String colString = switch (col) {
+            case (1) -> "a";
+            case (2) -> "b";
+            case (3) -> "c";
+            case (4) -> "d";
+            case (5) -> "e";
+            case (6) -> "f";
+            case (7) -> "g";
+            case (8) -> "h";
+            default -> "";
+        };
+        return colString + row;
+    }
+
     /**
      * @return which row this position is in
      * 1 codes for the bottom row
