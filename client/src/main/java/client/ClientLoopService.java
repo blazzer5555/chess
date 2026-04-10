@@ -15,16 +15,6 @@ public class ClientLoopService {
     final Scanner SCANNER = new Scanner(System.in);
     final ServerFacade SERVER = new ServerFacade();
     final ChessBoardDrawer DRAWER = new ChessBoardDrawer();
-    WebsocketClient wsClient;
-
-    public ClientLoopService() {
-        try {
-            wsClient = new WebsocketClient();
-        }
-        catch (Exception e) {
-            System.out.println("Sorry, something went wrong trying to create a websocket");
-        }
-    }
 
     public void runLoop() {
         boolean serverStartedCorrectly = populateMapOfIDs();
@@ -130,7 +120,7 @@ public class ClientLoopService {
 
     private int gameplayLoop(String authToken, int gameID) {
         System.out.println("Type the number associated with the action, then press enter. \n");
-        System.out.println("1. Help\n2. Redraw chess board\n3. Leave game\n4. Make move\n5. Resign\n6. Highlight legal moves");
+        System.out.println("1. Help\n2. Leave game\n3. Redraw chess board\n4. Make move\n5. Resign\n6. Highlight legal moves");
         int userResponse;
         try {
             userResponse = Integer.parseInt(SCANNER.nextLine());
@@ -141,17 +131,17 @@ public class ClientLoopService {
         }
         switch (userResponse) {
             case (1):
-                System.out.println("Redraw chess board: Redraws the chess board so you don't have to keep scrolling back up to see it.");
                 System.out.println("Leave game: This will make you leave the game, but players can join the open spot, including you.");
-                System.out.print("Make move: If it's your turn, make a move on the board.");
+                System.out.println("Redraw chess board: Redraws the chess board so you don't have to keep scrolling back up to see it.");
+                System.out.println("Make move: If it's your turn, make a move on the board.");
                 System.out.println("Resign: Forfeit the game. This results in you losing and nobody else being able to makes further moves.");
                 System.out.println("Highlight legal moves: Given a place on the board, highlight all the legal moves that piece can make.");
                 break;
             case(2):
+                return leaveGame(authToken, gameID);
+            case(3):
                 redrawBoard(gameID);
                 break;
-            case(3):
-                return leaveGame(authToken, gameID);
             case(4):
                 makeMove(authToken, gameID);
                 break;
@@ -169,6 +159,7 @@ public class ClientLoopService {
     }
 
     private void highlightLegalMoves(String authToken, int gameID) {
+
     }
 
     private void resign(String authToken, int gameID) {
@@ -182,7 +173,7 @@ public class ClientLoopService {
     private int leaveGame(String authToken, int gameID) {
         UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, mapOfIDs.get(gameID));
         try {
-            wsClient.send(command);
+            SERVER.sendWebsocketRequest(command);
             return 0;
         }
         catch (Exception e) {
@@ -350,7 +341,7 @@ public class ClientLoopService {
         try {
             if (successfulJoin) {
                 UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID));
-                wsClient.send(command);
+                SERVER.sendWebsocketRequest(command);
                 return new LoginLoopData(authToken, gameID);
             }
         }
