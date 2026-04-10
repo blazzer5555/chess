@@ -22,17 +22,17 @@ public class JoinGameHandler implements Handler {
                     createBadRequestResponse(context);
                 }
             } else {
-                ErrorResponder responder = new ErrorResponder();
+                HttpErrorResponder responder = new HttpErrorResponder();
                 responder.handleUnauthorized(context);
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }
 
     private void createBadRequestResponse(Context context) {
-        ErrorResponder responder = new ErrorResponder();
+        HttpErrorResponder responder = new HttpErrorResponder();
         responder.handleBadRequest(context);
     }
 
@@ -42,14 +42,14 @@ public class JoinGameHandler implements Handler {
                 if (joiner.colorAvailable(request.playerColor(), request.gameID())) {
                     joiner.joinGame(request, authToken);
                 } else {
-                    ErrorResponder responder = new ErrorResponder();
+                    HttpErrorResponder responder = new HttpErrorResponder();
                     responder.handleAlreadyTaken(context);
                 }
             } else {
                 createBadRequestResponse(context);
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }

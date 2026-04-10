@@ -3,7 +3,7 @@ package server;
 import io.javalin.http.Context;
 import com.google.gson.Gson;
 
-public class ErrorResponder {
+public class HttpErrorResponder {
 
     record ResponseMessage(String message) { }
     private final Gson gson = new Gson();

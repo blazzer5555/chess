@@ -18,7 +18,7 @@ public class CreateGameHandler implements Handler {
         try {
             if (creater.userIsLoggedIn(authToken)) {
                 if (request.gameName() == null | creater.gameNameIsTaken(request.gameName())) {
-                    ErrorResponder responder = new ErrorResponder();
+                    HttpErrorResponder responder = new HttpErrorResponder();
                     responder.handleBadRequest(context);
                 } else {
                     int newID = creater.createGame(request.gameName());
@@ -27,11 +27,11 @@ public class CreateGameHandler implements Handler {
                     context.result(gson.toJson(response));
                 }
             } else {
-                ErrorResponder responder = new ErrorResponder();
+                HttpErrorResponder responder = new HttpErrorResponder();
                 responder.handleUnauthorized(context);
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }

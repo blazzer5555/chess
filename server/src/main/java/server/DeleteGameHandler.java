@@ -4,10 +4,8 @@ import com.google.gson.Gson;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import model.DeleteGameRequest;
-import model.JoinGameRequest;
 import org.jetbrains.annotations.NotNull;
 import service.DeleteGameService;
-import service.JoinGameService;
 
 public class DeleteGameHandler implements Handler {
     @Override
@@ -22,15 +20,15 @@ public class DeleteGameHandler implements Handler {
                     joiner.removeGame(request.gameID());
                 }
                 else {
-                    ErrorResponder responder = new ErrorResponder();
+                    HttpErrorResponder responder = new HttpErrorResponder();
                     responder.handleBadRequest(context);
                 }
             } else {
-                ErrorResponder responder = new ErrorResponder();
+                HttpErrorResponder responder = new HttpErrorResponder();
                 responder.handleUnauthorized(context);
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }

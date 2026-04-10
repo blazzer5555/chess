@@ -31,11 +31,11 @@ public class ListGamesHandler implements Handler {
                 context.status(200);
                 context.result(gson.toJson(response));
             } else {
-                ErrorResponder responder = new ErrorResponder();
+                HttpErrorResponder responder = new HttpErrorResponder();
                 responder.handleUnauthorized(context);
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }

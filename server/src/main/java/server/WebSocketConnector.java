@@ -1,6 +1,7 @@
 package server;
 
 import chess.ChessGame;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DatabaseAuthDAO;
 import dataaccess.DatabaseGameDAO;
@@ -41,8 +42,28 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         else if (command.getCommandType() == UserGameCommand.CommandType.LEAVE) {
             handleLeaving(ctx, command);
         }
+        else if (command.getCommandType() == UserGameCommand.CommandType.MAKE_MOVE) {
+            handleMakeMove(ctx, command);
+        }
         //When this receives a message from the client, it checks to see what message it is and does stuff in the database accordingly.
         //Then it sends a message back immediately.
+    }
+
+    private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
+        try {
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            gameData.game().makeMove(command.getMove());
+        }
+        catch (InvalidMoveException me) {
+            WebsocketErrorResponder er = new WebsocketErrorResponder();
+            er.handleErrorResponse(ctx, me.getMessage());
+        }
+        catch (Exception e) {
+
+        }
     }
 
     private void handleLeaving(WsMessageContext ctx, UserGameCommand command) {
@@ -73,28 +94,20 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             ctx.send(serializedMessage);
         }
         catch (Exception e) {
-            String errorMessage = "There was an error when trying to access the database.";
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                    errorMessage, "", null, null);
-            String serializedMessage = GSON.toJson(message);
-            ctx.send(serializedMessage);
+            WebsocketErrorResponder er = new WebsocketErrorResponder();
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 
     private void handleConnection(WsMessageContext ctx, UserGameCommand command) {
-        System.out.println("Got to handleConnection function call.");
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         try {
             GameData gameData = gameDAO.getGameByID(command.getGameID());
-            System.out.println("getGamebyID passed.");
             ChessGame game = gameData.game();
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
-            System.out.println("getUsername passed.");
             sessionHolder.put(ctx.session, command.getGameID());
-            System.out.println("Added session to sessionHolder.");
             authTokenToSession.put(command.getAuthToken(), ctx.session);
-            System.out.println("Added authToken session pair.");
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
@@ -102,20 +115,13 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             else {
                 color = "BLACK";
             }
-            System.out.println("Got past the stuff that could trip the try block.");
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", "", game, color);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
-            System.out.println("ctx.send was executed.");
         }
         catch (Exception e) {
-            System.out.println("Catch was thrown instead.");
-            String errorMessage = "There was an error when trying to access the database.";
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                    errorMessage, "", null, null);
-            String serializedMessage = GSON.toJson(message);
-            ctx.send(serializedMessage);
-            System.out.println("ctx.send was sent from catch block.");
+            WebsocketErrorResponder er = new WebsocketErrorResponder();
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 }

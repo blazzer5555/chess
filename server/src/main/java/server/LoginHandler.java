@@ -16,7 +16,7 @@ public class LoginHandler implements Handler {
         LoginRequest loginRequest = gson.fromJson(context.body(), LoginRequest.class);
         LoginService loginService = new LoginService();
         if (loginRequest.username() == null | loginRequest.password() == null) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadRequest(context);
             return;
         }
@@ -38,13 +38,13 @@ public class LoginHandler implements Handler {
                 createUnauthorizedResponse(context);
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }
 
     private void createUnauthorizedResponse(Context context) {
-        ErrorResponder responder = new ErrorResponder();
+        HttpErrorResponder responder = new HttpErrorResponder();
         responder.handleUnauthorized(context);
     }
 }

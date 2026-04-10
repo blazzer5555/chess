@@ -13,14 +13,14 @@ public class RegisterHandler implements Handler {
         Gson gson = new Gson();
         UserData userData = gson.fromJson(context.body(), UserData.class);
         if (userData.password() == null | userData.username() == null | userData.email() == null) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadRequest(context);
             return;
         }
         try {
             RegisterService registerer = new RegisterService();
             if (registerer.userAlreadyInDatabase(userData.username())) {
-                ErrorResponder responder = new ErrorResponder();
+                HttpErrorResponder responder = new HttpErrorResponder();
                 responder.handleAlreadyTaken(context);
             } else {
                 AuthData newAuthData = registerer.registerUser(userData);
@@ -31,7 +31,7 @@ public class RegisterHandler implements Handler {
                 context.result(gson.toJson(response));
             }
         } catch (Exception e) {
-            ErrorResponder responder = new ErrorResponder();
+            HttpErrorResponder responder = new HttpErrorResponder();
             responder.handleBadDatabase(context);
         }
     }
