@@ -1,11 +1,9 @@
 package client;
 
 import model.*;
+import websocket.commands.UserGameCommand;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 //Make a move on the chess board in the form of \"[Position of piece you want to move] " +
 //                        "[Location where you want it to move]\". For example, \"e2 e4\"");
@@ -120,6 +118,9 @@ public class ClientLoopService {
                 return joinGame(authToken);
             case(6):
                 spectateGame(authToken);
+                break;
+            case(41):
+                deleteGame(authToken);
                 break;
             default:
                 System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
@@ -329,11 +330,8 @@ public class ClientLoopService {
         try {
             boolean successfulJoin = SERVER.sendJoinGameRequest(joinGameRequest, authToken);
             if (successfulJoin) {
-                if (color.equals("WHITE")) {
-                    DRAWER.drawWhitePerspective(null);
-                } else {
-                    DRAWER.drawBlackPerspective(null);
-                }
+                UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID));
+                wsClient.send(command);
                 return new LoginLoopData(authToken, true);
             }
         }
@@ -342,6 +340,23 @@ public class ClientLoopService {
             return new LoginLoopData(authToken, false);
         }
         return new LoginLoopData(authToken, false);
+    }
+
+    private void deleteGame(String authToken) {
+        System.out.println("Please enter the password to access this functionality.");
+        String password = SCANNER.nextLine();
+        if (Objects.equals(password, "PaulPhoenixSmasher")) {
+            System.out.println("Please enter the game ID of the game you'd like to delete.");
+            int gameID = Integer.parseInt(SCANNER.nextLine());
+            DeleteGameRequest request = new DeleteGameRequest(mapOfIDs.get(gameID));
+            try {
+                SERVER.sendDeleteGameRequest(authToken, request);
+                updateMapOfIDs(authToken);
+            }
+            catch (Exception e) {
+                System.out.println("Something went wrong with the server. Please try again later.");
+            }
+        }
     }
 
     private boolean populateMapOfIDs() {
@@ -374,5 +389,20 @@ public class ClientLoopService {
             return false;
         }
         return true;
+    }
+
+    private void updateMapOfIDs(String authToken) {
+        try {
+            ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
+            maxIDNumber = 1;
+            mapOfIDs.clear();
+            for (ListGamesResponse game: listOfGameData) {
+                mapOfIDs.put(maxIDNumber, game.gameID());
+                maxIDNumber++;
+            }
+        }
+        catch (Exception e) {
+            System.out.println("Failed to update mapOfIDs.");
+        }
     }
 }

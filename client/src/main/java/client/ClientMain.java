@@ -6,7 +6,7 @@ import java.util.*;
 public class ClientMain {
 
     static void main(String[] args) {
-        ClientLoopService clientLoopService = new ClientLoopService();
-        clientLoopService.runLoop();
+            ClientLoopService clientLoopService = new ClientLoopService();
+            clientLoopService.runLoop();
     }
 }

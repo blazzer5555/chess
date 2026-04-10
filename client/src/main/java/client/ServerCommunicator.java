@@ -135,6 +135,21 @@ public class ServerCommunicator {
         }
     }
 
+    public void sendDeleteGameRequest(DeleteGameRequest deleteGameRequest, String authToken) throws Exception {
+        String urlString = "http://localhost:8080/g";
+        String deleteBody = GSON.toJson(deleteGameRequest);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(5000))
+                .header("authorization", authToken)
+                .PUT(HttpRequest.BodyPublishers.ofString(deleteBody))
+                .build();
+        HttpResponse<String> httpResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+            notifyUserOfProblem(httpResponse, false);
+        }
+    }
+
     private void notifyUserOfProblem(HttpResponse<String> httpResponse, boolean calledFromJoinGame) {
         switch (httpResponse.statusCode()) {
             case (400):

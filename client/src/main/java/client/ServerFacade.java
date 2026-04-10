@@ -34,4 +34,8 @@ public class ServerFacade {
     public void sendClearRequest(String authToken) throws Exception {
         COMMUNICATOR.sendClearRequest(authToken);
     }
+
+    public void sendDeleteGameRequest(String authToken, DeleteGameRequest deleteGameRequest) throws Exception {
+        COMMUNICATOR.sendDeleteGameRequest(deleteGameRequest, authToken);
+    }
 }

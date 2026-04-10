@@ -29,6 +29,8 @@ public class Server {
         javalin.put("/game", gameJoiner);
         ClearHandler clearer = new ClearHandler();
         javalin.delete("/db", clearer);
+        DeleteGameHandler deleter = new DeleteGameHandler();
+        javalin.put("/g", deleter);
     }
 
     public int run(int desiredPort) {
