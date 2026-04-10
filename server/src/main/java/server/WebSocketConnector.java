@@ -6,31 +6,91 @@ import dataaccess.DatabaseAuthDAO;
 import dataaccess.DatabaseGameDAO;
 import io.javalin.websocket.*;
 import model.GameData;
+import model.JoinGameRequest;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class WebSocketConnector implements WsMessageHandler {
+public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, WsCloseHandler {
 
     final Gson GSON = new Gson();
-    Map<Integer, Session> sessionHolder = new HashMap<>();
+    public final ConcurrentHashMap<Integer, Set<Session>> sessionHolder = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, Session> authTokenToSession = new ConcurrentHashMap<>();
+
+    @Override
+    public void handleClose(@NotNull WsCloseContext ctx) throws Exception {
+    }
+
+    @Override
+    public void handleConnect(@NotNull WsConnectContext ctx) throws Exception {
+        ctx.enableAutomaticPings();
+    }
 
     @Override
     public void handleMessage(@NotNull WsMessageContext ctx) {
         UserGameCommand command = GSON.fromJson(ctx.message(), UserGameCommand.class);
         if (command.getCommandType() == UserGameCommand.CommandType.CONNECT) {
-            handleConnect(ctx, command);
+            handleConnection(ctx, command);
+        }
+        else if (command.getCommandType() == UserGameCommand.CommandType.LEAVE) {
+            handleLeaving(ctx, command);
         }
         //When this receives a message from the client, it checks to see what message it is and does stuff in the database accordingly.
         //Then it sends a message back immediately.
     }
 
-    private void handleConnect(WsMessageContext ctx, UserGameCommand command) {
+    private void handleLeaving(WsMessageContext ctx, UserGameCommand command) {
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
+        try {
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String color;
+            String enumColor;
+            if (Objects.equals(gameData.whiteUsername(), username)) {
+                color = "white";
+                enumColor = "WHITE";
+            }
+            else {
+                color = "black";
+                enumColor = "BLACK";
+            }
+            JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
+            gameDAO.leavePlayer(request);
+            try {
+                Session sessionToDelete = authTokenToSession.get(command.getAuthToken());
+                authTokenToSession.remove(command.getAuthToken());
+                sessionHolder.get(command.getGameID()).remove(sessionToDelete);
+            }
+            catch (Exception e) {
+                String errorMessage = "There was an error related to the websocket.";
+                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                        errorMessage, "", null, null);
+                String serializedMessage = GSON.toJson(message);
+                ctx.send(serializedMessage);
+                return;
+            }
+            String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                    "", notificationMessage, null, null);
+            String serializedMessage = GSON.toJson(message);
+            ctx.send(serializedMessage);
+        }
+        catch (Exception e) {
+            String errorMessage = "There was an error when trying to access the database.";
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                    errorMessage, "", null, null);
+            String serializedMessage = GSON.toJson(message);
+            ctx.send(serializedMessage);
+        }
+    }
+
+    private void handleConnection(WsMessageContext ctx, UserGameCommand command) {
         DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         try {
@@ -39,8 +99,8 @@ public class WebSocketConnector implements WsMessageHandler {
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             try {
                 Session session = ctx.session;
-                sessionHolder.put(command.getGameID(), session);
-                ctx.enableAutomaticPings();
+                sessionHolder.get(command.getGameID()).add(session);
+                authTokenToSession.put(command.getAuthToken(), session);
             }
             catch (Exception e) {
                 String errorMessage = "There was an error related to the websocket.";
