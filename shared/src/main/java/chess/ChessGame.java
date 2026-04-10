@@ -12,6 +12,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
+
     private ChessBoard board;
     private TeamColor playerTurn;
 
@@ -99,10 +100,10 @@ public class ChessGame {
                 }
                 board.addPiece(move.getStartPosition(), null);
                 if (playerTurn == TeamColor.WHITE) {
-                    playerTurn = TeamColor.BLACK;
+                    setTeamTurn(TeamColor.BLACK);
                 }
                 else {
-                    playerTurn = TeamColor.WHITE;
+                    setTeamTurn(TeamColor.WHITE);
                 }
                 return;
             }
