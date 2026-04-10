@@ -130,4 +130,14 @@ public class DatabaseGameDAO {
             }
         }
     }
+
+    public void deleteGame(int gameID) throws SQLException, DataAccessException{
+        try (var conn = DatabaseManager.getConnection()) {
+            String getStatement = "DELETE FROM gamedata WHERE id = ?";
+            try (var preparedStatement = conn.prepareStatement(getStatement)) {
+                preparedStatement.setInt(1, gameID);
+                preparedStatement.executeUpdate();
+            }
+        }
+    }
 }
