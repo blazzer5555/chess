@@ -1,6 +1,5 @@
 package client;
 
-import chess.ChessBoard;
 import com.google.gson.Gson;
 import jakarta.websocket.ContainerProvider;
 import jakarta.websocket.Endpoint;
@@ -27,14 +26,17 @@ public class WebsocketClient extends Endpoint{
         session = container.connectToServer(this, uri);
 
         this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
-            ServerMessage serializedMessage = GSON.fromJson(message, ServerMessage.class);
-            if (serializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
-                if (Objects.equals(serializedMessage.getColor(), "WHITE")) {
-                    DRAWER.drawWhitePerspective(serializedMessage.getGame().getBoard());
+            ServerMessage deserializedMessage = GSON.fromJson(message, ServerMessage.class);
+            if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+                if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
+                    DRAWER.drawWhitePerspective(deserializedMessage.getGame().getBoard());
                 }
                 else {
-                    DRAWER.drawBlackPerspective(serializedMessage.getGame().getBoard());
+                    DRAWER.drawBlackPerspective(deserializedMessage.getGame().getBoard());
                 }
+            }
+            if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
+                System.out.println(deserializedMessage.getNotificationMessage());
             }
             //When this receives a message from the server, check what the message is, then do the appropriate action.
         });
