@@ -10,11 +10,7 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         WebSocketConnector connector = new WebSocketConnector();
-        javalin.ws("/ws", ws -> {
-                    ws.onConnect(connector);
-                    ws.onMessage(connector);
-                    ws.onClose(connector);
-                });
+        javalin.ws("/ws", ws -> ws.onMessage(connector));
         RegisterHandler registerer = new RegisterHandler();
         javalin.post("/user", registerer);
         LoginHandler loggerIn = new LoginHandler();
