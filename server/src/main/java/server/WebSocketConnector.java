@@ -21,17 +21,35 @@ public class WebSocketConnector implements WsMessageHandler {
     Map<Integer, Session> sessionHolder = new HashMap<>();
 
     @Override
-    public void handleMessage(@NotNull WsMessageContext ctx) throws Exception {
-        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
+    public void handleMessage(@NotNull WsMessageContext ctx) {
         UserGameCommand command = GSON.fromJson(ctx.message(), UserGameCommand.class);
-        Session session = ctx.session;
-        sessionHolder.put(0, null);
-        ctx.enableAutomaticPings();
         if (command.getCommandType() == UserGameCommand.CommandType.CONNECT) {
-            DatabaseGameDAO gameDAO = new DatabaseGameDAO();
+            handleConnect(ctx, command);
+        }
+        //When this receives a message from the client, it checks to see what message it is and does stuff in the database accordingly.
+        //Then it sends a message back immediately.
+    }
+
+    private void handleConnect(WsMessageContext ctx, UserGameCommand command) {
+        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
+        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
+        try {
             GameData gameData = gameDAO.getGameByID(command.getGameID());
             ChessGame game = gameData.game();
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            try {
+                Session session = ctx.session;
+                sessionHolder.put(command.getGameID(), session);
+                ctx.enableAutomaticPings();
+            }
+            catch (Exception e) {
+                String errorMessage = "There was an error related to the websocket.";
+                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                        errorMessage, "", null, null);
+                String serializedMessage = GSON.toJson(message);
+                ctx.send(serializedMessage);
+                return;
+            }
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
@@ -43,7 +61,12 @@ public class WebSocketConnector implements WsMessageHandler {
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
         }
-        //When this receives a message from the client, it checks to see what message it is and does stuff in the database accordingly.
-        //Then it sends a message back immediately.
+        catch (Exception e) {
+            String errorMessage = "There was an error when trying to access the database.";
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                    errorMessage, "", null, null);
+            String serializedMessage = GSON.toJson(message);
+            ctx.send(serializedMessage);
+        }
     }
 }
