@@ -171,9 +171,10 @@ public class ClientLoopService {
     }
 
     private int leaveGame(String authToken, int gameID) {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, mapOfIDs.get(gameID));
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, mapOfIDs.get(gameID), null);
         try {
             SERVER.sendWebsocketRequest(command);
+            System.out.println("You have left the game.");
             return 0;
         }
         catch (Exception e) {
@@ -340,7 +341,7 @@ public class ClientLoopService {
         }
         if (successfulJoin) {
             try {
-                UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID));
+                UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
                 SERVER.sendWebsocketRequest(command);
                 return new LoginLoopData(authToken, gameID);
             }
