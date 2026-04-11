@@ -74,7 +74,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 
@@ -96,7 +96,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 
@@ -121,13 +121,33 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
         try {
             GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String color;
+            if (Objects.equals(gameData.whiteUsername(), username)) {
+                color = "WHITE";
+                if (gameData.game().getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor()
+                        == ChessGame.TeamColor.BLACK) {
+                    WebsocketErrorResponder er = new WebsocketErrorResponder();
+                    er.handleErrorResponse(ctx, "You can't move another person's piece!");
+                    return;
+                }
+            }
+            else {
+                color = "BLACK";
+                if (gameData.game().getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor()
+                        == ChessGame.TeamColor.WHITE) {
+                    WebsocketErrorResponder er = new WebsocketErrorResponder();
+                    er.handleErrorResponse(ctx, "You can't move another person's piece!");
+                    return;
+                }
+            }
             try {
                 gameData.game().makeMove(command.getMove());
             }
@@ -137,14 +157,6 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 return;
             }
             GAME_DAO.updateGame(gameData);
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
-            String color;
-            if (Objects.equals(gameData.whiteUsername(), username)) {
-                color = "WHITE";
-            }
-            else {
-                color = "BLACK";
-            }
             ServerMessage loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, gameData.game(), color);
             String serializedLoadMessage = GSON.toJson(loadMessage);
             ctx.send(serializedLoadMessage);
@@ -158,7 +170,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 
@@ -187,7 +199,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 
@@ -224,7 +236,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 }
