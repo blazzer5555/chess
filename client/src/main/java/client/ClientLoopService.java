@@ -27,12 +27,10 @@ public class ClientLoopService {
                     LoginLoopData loginLoopData = loginLoop(authToken);
                     authToken = loginLoopData.authToken();
                     currentGameID = loginLoopData.currentGameID();
-                }
-                else {
+                } else {
                     currentGameID = gameplayLoop(authToken, currentGameID);
                 }
-            }
-            else {
+            } else {
                 PreLoginLoopData userStatuses = preLoginLoop();
                 doneWithProgram = userStatuses.doneWithProgram();
                 authToken = userStatuses.authToken();
@@ -40,6 +38,7 @@ public class ClientLoopService {
         }
         System.out.println("Thanks for playing!");
     }
+
     private PreLoginLoopData preLoginLoop() {
         boolean doneWithProgram = false;
         System.out.println("Type the number associated with the action, then press enter. \n");
@@ -47,8 +46,7 @@ public class ClientLoopService {
         int userResponse;
         try {
             userResponse = Integer.parseInt(scanner.nextLine());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
             return new PreLoginLoopData(false, null);
         }
@@ -78,8 +76,7 @@ public class ClientLoopService {
         int userResponse;
         try {
             userResponse = Integer.parseInt(scanner.nextLine());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
             return new LoginLoopData(authToken, 0);
         }
@@ -91,19 +88,19 @@ public class ClientLoopService {
                 System.out.println("Play game: Join a game as either the white or black player.");
                 System.out.println("Spectate game: Observe a game that is being played by other players.");
                 break;
-            case(2):
+            case (2):
                 return logout(authToken);
-            case(3):
+            case (3):
                 createGame(authToken);
                 break;
-            case(4):
+            case (4):
                 listGames(authToken);
                 break;
-            case(5):
+            case (5):
                 return joinGame(authToken);
-            case(6):
+            case (6):
                 return spectateGame(authToken);
-            case(41):
+            case (41):
                 deleteGame(authToken);
                 break;
             default:
@@ -119,8 +116,7 @@ public class ClientLoopService {
         int userResponse;
         try {
             userResponse = Integer.parseInt(scanner.nextLine());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the option you'd like to choose.");
             return gameID;
         }
@@ -132,18 +128,18 @@ public class ClientLoopService {
                 System.out.println("Resign: Forfeit the game. This results in you losing and nobody else being able to makes further moves.");
                 System.out.println("Highlight legal moves: Given a place on the board, highlight all the legal moves that piece can make.");
                 break;
-            case(2):
+            case (2):
                 return leaveGame(authToken, gameID);
-            case(3):
+            case (3):
                 redrawBoard(authToken, gameID);
                 break;
-            case(4):
+            case (4):
                 makeMove(authToken, gameID);
                 break;
-            case(5):
+            case (5):
                 resign(authToken, gameID);
                 break;
-            case(6):
+            case (6):
                 highlightLegalMoves(authToken, gameID);
                 break;
             default:
@@ -162,8 +158,7 @@ public class ClientLoopService {
         }
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.HIGHLIGHT_BOARD, authToken, mapOfIDs.get(gameID), move);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the websocket connection.");
         }
     }
@@ -171,8 +166,7 @@ public class ClientLoopService {
     private void resign(String authToken, int gameID) {
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the websocket connection.");
         }
     }
@@ -189,8 +183,7 @@ public class ClientLoopService {
         }
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.MAKE_MOVE, authToken, mapOfIDs.get(gameID), move);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the websocket connection.");
         }
     }
@@ -230,7 +223,7 @@ public class ClientLoopService {
         ChessPiece.PieceType pieceType = null;
         if (userMove.length() >= 7) {
             char pieceLetter = userMove.charAt(6);
-            pieceType = switch(pieceLetter) {
+            pieceType = switch (pieceLetter) {
                 case ('q') -> ChessPiece.PieceType.QUEEN;
                 case ('n') -> ChessPiece.PieceType.KNIGHT;
                 case ('b') -> ChessPiece.PieceType.BISHOP;
@@ -273,8 +266,7 @@ public class ClientLoopService {
             server.sendWebsocketRequest(UserGameCommand.CommandType.LEAVE, authToken, mapOfIDs.get(gameID), null);
             System.out.println("You have left the game.");
             return 0;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Something went wrong trying to leave the game. Please try again later.");
             return gameID;
         }
@@ -283,8 +275,7 @@ public class ClientLoopService {
     private void redrawBoard(String authToken, int gameID) {
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.GET_BOARD, authToken, mapOfIDs.get(gameID), null);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Something went wrong trying to leave the game. Please try again later.");
         }
     }
@@ -299,8 +290,7 @@ public class ClientLoopService {
         try {
             String authToken = server.sendRegisterRequest(username, password, email);
             return new PreLoginLoopData(false, authToken);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
             return new PreLoginLoopData(false, null);
         }
@@ -317,14 +307,12 @@ public class ClientLoopService {
                 boolean populated = populateMapOfIDs(authToken);
                 if (populated) {
                     return new PreLoginLoopData(false, authToken);
-                }
-                else {
+                } else {
                     System.out.println("Sorry, something went wrong with the server. Please try again later.");
                     return new PreLoginLoopData(false, null);
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
         }
         return new PreLoginLoopData(false, null);
@@ -339,15 +327,8 @@ public class ClientLoopService {
         int gameID;
         try {
             gameID = Integer.parseInt(scanner.nextLine());
-            try {
-                server.sendWebsocketRequest(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
-                return new LoginLoopData(authToken, gameID);
-            }
-            catch (Exception e) {
-                System.out.println("Sorry, something went wrong with the server. Please try again later.");
-            }
-        }
-        catch (Exception e) {
+            return connectToGame(authToken, gameID);
+        } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
             System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
         }
@@ -367,20 +348,17 @@ public class ClientLoopService {
                 String variableBlackPlayer;
                 if (currentGame.whiteUsername() == null) {
                     variableWhitePlayer = "Nobody is currently playing white.";
-                }
-                else {
+                } else {
                     variableWhitePlayer = "White player is " + currentGame.whiteUsername() + ".";
                 }
                 if (currentGame.blackUsername() == null) {
                     variableBlackPlayer = "Nobody is currently playing black.";
-                }
-                else {
+                } else {
                     variableBlackPlayer = "Black player is " + currentGame.blackUsername() + ".";
                 }
                 System.out.println(i + ": " + currentGame.gameName() + ". " + variableWhitePlayer + " " + variableBlackPlayer);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
         }
     }
@@ -394,8 +372,7 @@ public class ClientLoopService {
                 mapOfIDs.put(maxIDNumber, returnGameID);
                 maxIDNumber++;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
         }
     }
@@ -404,8 +381,7 @@ public class ClientLoopService {
         try {
             server.sendLogoutRequest(authToken);
             return new LoginLoopData(null, 0);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
             return new LoginLoopData(authToken, 0);
         }
@@ -420,8 +396,7 @@ public class ClientLoopService {
         System.out.println("Which game would you like to join?");
         try {
             gameID = Integer.parseInt(scanner.nextLine());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
             System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
             return new LoginLoopData(authToken, 0);
@@ -433,37 +408,27 @@ public class ClientLoopService {
         int colorChoice;
         try {
             colorChoice = Integer.parseInt(scanner.nextLine());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the color you want to play.");
             return new LoginLoopData(authToken, 0);
         }
         if (colorChoice == 1) {
             color = "WHITE";
-        }
-        else if (colorChoice == 2) {
+        } else if (colorChoice == 2) {
             color = "BLACK";
-        }
-        else {
+        } else {
             System.out.println("That is not a valid option. Please type \"1\" for white or \"2\" for black.");
             return new LoginLoopData(authToken, 0);
         }
         boolean successfulJoin;
         try {
             successfulJoin = server.sendJoinGameRequest(color, mapOfIDs.get(gameID), authToken);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
             return new LoginLoopData(authToken, 0);
         }
         if (successfulJoin) {
-            try {
-                server.sendWebsocketRequest(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
-                return new LoginLoopData(authToken, gameID);
-            }
-            catch (Exception e) {
-                System.out.println("Sorry, something went wrong with the websocket connection.");
-            }
+            return connectToGame(authToken, gameID);
         }
         return new LoginLoopData(authToken, 0);
     }
@@ -477,10 +442,19 @@ public class ClientLoopService {
             try {
                 server.sendDeleteGameRequest(authToken, mapOfIDs.get(gameID));
                 updateMapOfIDs(authToken);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println("Something went wrong with the server. Please try again later.");
             }
+        }
+    }
+
+    private LoginLoopData connectToGame(String authToken, int gameID) {
+        try {
+            server.sendWebsocketRequest(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
+            return new LoginLoopData(authToken, gameID);
+        } catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the websocket connection.");
+            return new LoginLoopData(authToken, 0);
         }
     }
 
@@ -491,8 +465,7 @@ public class ClientLoopService {
                 mapOfIDs.put(maxIDNumber, game.gameID());
                 maxIDNumber++;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
         mapOfIDsPopulated = true;
@@ -504,12 +477,11 @@ public class ClientLoopService {
             ArrayList<ListGamesResponse> listOfGameData = server.sendListGamesRequest(authToken);
             maxIDNumber = 1;
             mapOfIDs.clear();
-            for (ListGamesResponse game: listOfGameData) {
+            for (ListGamesResponse game : listOfGameData) {
                 mapOfIDs.put(maxIDNumber, game.gameID());
                 maxIDNumber++;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Failed to update mapOfIDs.");
         }
     }
