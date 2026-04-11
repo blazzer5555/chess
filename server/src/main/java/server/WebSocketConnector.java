@@ -19,8 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, WsCloseHandler {
 
     final Gson GSON = new Gson();
-    public final ConcurrentHashMap<Session, Integer> sessionHolder = new ConcurrentHashMap<>();
-    public final ConcurrentHashMap<String, Session> authTokenToSession = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Session, Integer> SESSION_HOLDER = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Session> AUTH_TOKEN_TO_SESSION = new ConcurrentHashMap<>();
+    private final DatabaseAuthDAO AUTH_DAO = new DatabaseAuthDAO();
+    private final DatabaseGameDAO GAME_DAO = new DatabaseGameDAO();
 
     @Override
     public void handleClose(@NotNull WsCloseContext ctx) throws Exception {
@@ -44,28 +46,49 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         else if (command.getCommandType() == UserGameCommand.CommandType.MAKE_MOVE) {
             handleMakeMove(ctx, command);
         }
+        else if (command.getCommandType() == UserGameCommand.CommandType.RESIGN) {
+            handleResign(ctx, command);
+        }
+    }
+
+    private void handleResign(WsMessageContext ctx, UserGameCommand command) {
+        try {
+            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            gameData.game().resign();
+            GAME_DAO.updateGame(gameData);
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String color;
+            if (Objects.equals(gameData.whiteUsername(), username)) {
+                color = "Black";
+            }
+            else {
+                color = "White";
+            }
+            String notificationMessage = username + " has forfeited the match. " + color + " wins!";
+            ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                    "", notificationMessage, null, null);
+            String serializedMessage = GSON.toJson(notifyMessage);
+            ctx.send(serializedMessage);
+        }
+        catch (Exception e) {
+            WebsocketErrorResponder er = new WebsocketErrorResponder();
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+        }
     }
 
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
-        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
-        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         try {
-            System.out.println("Made it into try block");
-            GameData gameData = gameDAO.getGameByID(command.getGameID());
-            System.out.println("After getting game data by id but before make move on game");
+            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
             try {
                 gameData.game().makeMove(command.getMove());
             }
             catch (Exception e) {
-                System.out.println("Made it into poor move catch");
                 WebsocketErrorResponder er = new WebsocketErrorResponder();
                 er.handleErrorResponse(ctx, e.getMessage());
                 return;
             }
-            System.out.println("Right before update game");
-            gameDAO.updateGame(gameData);
-            System.out.println("Right after update game");
-            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            GAME_DAO.updateGame(gameData);
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
@@ -91,11 +114,9 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
     }
 
     private void handleLeaving(WsMessageContext ctx, UserGameCommand command) {
-        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
-        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
         try {
-            GameData gameData = gameDAO.getGameByID(command.getGameID());
-            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             String enumColor;
             if (Objects.equals(gameData.whiteUsername(), username)) {
@@ -107,10 +128,10 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 enumColor = "BLACK";
             }
             JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
-            gameDAO.leavePlayer(request);
-            Session sessionToDelete = authTokenToSession.get(command.getAuthToken());
-            authTokenToSession.remove(command.getAuthToken());
-            sessionHolder.remove(sessionToDelete);
+            GAME_DAO.leavePlayer(request);
+            Session sessionToDelete = AUTH_TOKEN_TO_SESSION.get(command.getAuthToken());
+            AUTH_TOKEN_TO_SESSION.remove(command.getAuthToken());
+            SESSION_HOLDER.remove(sessionToDelete);
             String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                     "", notificationMessage, null, null);
@@ -124,14 +145,12 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
     }
 
     private void handleConnection(WsMessageContext ctx, UserGameCommand command) {
-        DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
-        DatabaseGameDAO gameDAO = new DatabaseGameDAO();
         try {
-            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
             ChessGame game = gameData.game();
-            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
-            sessionHolder.put(ctx.session, command.getGameID());
-            authTokenToSession.put(command.getAuthToken(), ctx.session);
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            SESSION_HOLDER.put(ctx.session, command.getGameID());
+            AUTH_TOKEN_TO_SESSION.put(command.getAuthToken(), ctx.session);
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";

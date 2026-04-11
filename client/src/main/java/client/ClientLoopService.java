@@ -166,7 +166,13 @@ public class ClientLoopService {
     }
 
     private void resign(String authToken, int gameID) {
-
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
+        try {
+            SERVER.sendWebsocketRequest(command);
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the websocket connection.");
+        }
     }
 
     private void makeMove(String authToken, int gameID) {
