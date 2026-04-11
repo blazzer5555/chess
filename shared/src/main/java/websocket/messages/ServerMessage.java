@@ -21,7 +21,8 @@ public class ServerMessage {
     public enum ServerMessageType {
         LOAD_GAME,
         ERROR,
-        NOTIFICATION
+        NOTIFICATION,
+        HIGHLIGHTED_GAME
     }
 
     public ServerMessage(ServerMessageType type, String error, String notification, ChessGame game, String color) {
