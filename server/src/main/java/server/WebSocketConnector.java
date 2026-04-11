@@ -103,6 +103,11 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
     private void handleResign(WsMessageContext ctx, UserGameCommand command) {
         try {
             GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            if (gameData.game().isGameOver()) {
+                WebsocketErrorResponder er = new WebsocketErrorResponder();
+                er.handleErrorResponse(ctx, "The other player has already resigned. You win!");
+                return;
+            }
             gameData.game().resign();
             GAME_DAO.updateGame(gameData);
             String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
