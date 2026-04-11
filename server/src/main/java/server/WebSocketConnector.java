@@ -74,7 +74,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 color = "BLACK";
             }
             String position = command.getMove().getStartPosition().print();
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.HIGHLIGHTED_GAME, "", position, game, color);
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.HIGHLIGHTED_GAME, null, position, game, color);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
         }
@@ -96,7 +96,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             else {
                 color = "BLACK";
             }
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", "", game, color);
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, game, color);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
         }
@@ -121,7 +121,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             }
             String notificationMessage = username + " has forfeited the match. " + color + " wins!";
             ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    "", notificationMessage, null, null);
+                    null, notificationMessage, null, null);
             String serializedMessage = GSON.toJson(notifyMessage);
             ctx.send(serializedMessage);
         }
@@ -151,7 +151,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             else {
                 color = "BLACK";
             }
-            ServerMessage loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", "", gameData.game(), color);
+            ServerMessage loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, gameData.game(), color);
             String serializedLoadMessage = GSON.toJson(loadMessage);
             ctx.send(serializedLoadMessage);
             /* String notificationMessage = username + " has just moved a piece from " +
@@ -189,7 +189,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             SESSION_HOLDER.remove(sessionToDelete);
             String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    "", notificationMessage, null, null);
+                    null, notificationMessage, null, null);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
         }
@@ -213,7 +213,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             else {
                 color = "BLACK";
             }
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", "", game, color);
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, game, color);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
         }

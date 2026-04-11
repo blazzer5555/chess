@@ -13,9 +13,9 @@ import java.util.Objects;
 public class ServerMessage {
 
     ServerMessageType serverMessageType;
-    private final String ERROR_MESSAGE;
+    private String errorMessage;
     private final String MESSAGE;
-    private final ChessGame GAME;
+    private ChessGame game;
     private final String PLAYER_COLOR;
 
     public enum ServerMessageType {
@@ -27,9 +27,9 @@ public class ServerMessage {
 
     public ServerMessage(ServerMessageType type, String error, String notification, ChessGame game, String color) {
         this.serverMessageType = type;
-        this.ERROR_MESSAGE = error;
+        this.errorMessage = error;
         this.MESSAGE = notification;
-        this.GAME = game;
+        this.game = game;
         this.PLAYER_COLOR = color;
     }
 
@@ -38,7 +38,7 @@ public class ServerMessage {
     }
 
     public String getErrorMessage() {
-        return ERROR_MESSAGE;
+        return errorMessage;
     }
 
     public String getNotificationMessage() {
@@ -46,7 +46,7 @@ public class ServerMessage {
     }
 
     public ChessGame getGame() {
-        return GAME;
+        return game;
     }
 
     public String getColor() {
