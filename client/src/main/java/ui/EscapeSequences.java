@@ -23,43 +23,31 @@ public class EscapeSequences {
 
     private static final String SET_TEXT_COLOR = UNICODE_ESCAPE + "[38;5;";
     private static final String SET_TEXT_COLOR_RGB = UNICODE_ESCAPE + "[38;2;";
-    private static final String SET_BG_COLOR = UNICODE_ESCAPE + "[48;5;";
     private static final String SET_BG_COLOR_RGB = UNICODE_ESCAPE + "[48;2;";
 
     public static final String SET_TEXT_COLOR_BLACK = SET_TEXT_COLOR + "0m";
-    public static final String SET_TEXT_COLOR_LIGHT_GREY = SET_TEXT_COLOR + "242m";
-    public static final String SET_TEXT_COLOR_DARK_GREY = SET_TEXT_COLOR + "235m";
-    public static final String SET_TEXT_COLOR_RED = SET_TEXT_COLOR + "160m";
-    public static final String SET_TEXT_COLOR_GREEN = SET_TEXT_COLOR + "46m";
-    public static final String SET_TEXT_COLOR_YELLOW = SET_TEXT_COLOR + "226m";
-    public static final String SET_TEXT_COLOR_BLUE = SET_TEXT_COLOR + "12m";
-    public static final String SET_TEXT_COLOR_MAGENTA = SET_TEXT_COLOR + "5m";
     public static final String SET_TEXT_COLOR_WHITE = SET_TEXT_COLOR + "15m";
     public static final String SET_TEXT_COLOR_BROWN = SET_TEXT_COLOR_RGB + "140;105;60m";
     public static final String SET_TEXT_COLOR_TAN = SET_TEXT_COLOR_RGB + "215;182;143m";
+    public static final String SET_TEXT_COLOR_RED = SET_TEXT_COLOR_RGB + "190;0;0m";
+    public static final String SET_TEXT_COLOR_PINK = SET_TEXT_COLOR_RGB + "255;120;120m";
+    public static final String SET_TEXT_COLOR_GREEN = SET_TEXT_COLOR_RGB + "110;255;110m";
+    public static final String SET_TEXT_COLOR_DARK_GREEN = SET_TEXT_COLOR_RGB + "30;180;30m";
+    public static final String SET_TEXT_COLOR_BLUE = SET_TEXT_COLOR_RGB + "60;125;160m";
+    public static final String SET_TEXT_COLOR_LIGHT_BLUE = SET_TEXT_COLOR_RGB + "100;200;255m";
     public static final String RESET_TEXT_COLOR = UNICODE_ESCAPE + "[39m";
 
-    public static final String SET_BG_COLOR_BLACK = SET_BG_COLOR + "0m";
-    public static final String SET_BG_COLOR_LIGHT_GREY = SET_BG_COLOR_RGB + "200;200;200m";
-    public static final String SET_BG_COLOR_DARK_GREY = SET_BG_COLOR + "235m";
-    public static final String SET_BG_COLOR_RED = SET_BG_COLOR + "160m";
-    public static final String SET_BG_COLOR_GREEN = SET_BG_COLOR + "46m";
-    public static final String SET_BG_COLOR_DARK_GREEN = SET_BG_COLOR + "22m";
-    public static final String SET_BG_COLOR_YELLOW = SET_BG_COLOR + "226m";
-    public static final String SET_BG_COLOR_BLUE = SET_BG_COLOR + "12m";
-    public static final String SET_BG_COLOR_MAGENTA = SET_BG_COLOR + "5m";
-    public static final String SET_BG_COLOR_WHITE = SET_BG_COLOR + "15m";
+    public static final String SET_BG_COLOR_RED = SET_BG_COLOR_RGB + "190;0;0m";
+    public static final String SET_BG_COLOR_PINK = SET_BG_COLOR_RGB + "255;120;120m";
+    public static final String SET_BG_COLOR_GREEN = SET_BG_COLOR_RGB + "110;255;110m";
+    public static final String SET_BG_COLOR_DARK_GREEN = SET_BG_COLOR_RGB + "30;180;30m";
+    public static final String SET_BG_COLOR_BLUE = SET_BG_COLOR_RGB + "60;125;160m";
+    public static final String SET_BG_COLOR_LIGHT_BLUE = SET_BG_COLOR_RGB + "100;200;255m";
     public static final String SET_BG_COLOR_TAN = SET_BG_COLOR_RGB + "215;182;143m";
     public static final String SET_BG_COLOR_BROWN = SET_BG_COLOR_RGB + "140;105;60m";
     public static final String SET_BG_COLOR_PALE_TAN = SET_BG_COLOR_RGB + "217;194;165m";
     public static final String RESET_BG_COLOR = UNICODE_ESCAPE + "[49m";
 
-    public static final String WHITE_KING = " ♔ ";
-    public static final String WHITE_QUEEN = " ♕ ";
-    public static final String WHITE_BISHOP = " ♗ ";
-    public static final String WHITE_KNIGHT = " ♘ ";
-    public static final String WHITE_ROOK = " ♖ ";
-    public static final String WHITE_PAWN = " ♙ ";
     public static final String BLACK_KING = " ♚ ";
     public static final String BLACK_QUEEN = " ♛ ";
     public static final String BLACK_BISHOP = " ♝ ";
