@@ -15,11 +15,21 @@ public class ChessGame {
 
     private ChessBoard board;
     private TeamColor playerTurn;
+    private boolean gameOver;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         setTeamTurn(TeamColor.WHITE);
+        gameOver = false;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void resign() {
+        gameOver = true;
     }
 
     /**
@@ -82,6 +92,9 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece pieceToMove = board.getPiece(move.getStartPosition());
+        if (gameOver) {
+            throw new InvalidMoveException("The game is over. You cannot make any more moves.");
+        }
         if (pieceToMove == null) {
             throw new InvalidMoveException("There is no piece at that location!");
         }
@@ -173,7 +186,10 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         if (isInCheck(teamColor)) {
-            return doesNotHaveAnyValidMove(teamColor);
+            if (doesNotHaveAnyValidMove(teamColor)) {
+                gameOver = true;
+                return true;
+            }
         }
         return false;
     }
