@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessMove;
 import model.*;
 import websocket.commands.UserGameCommand;
 
@@ -19,11 +20,13 @@ public class ServerFacade {
         }
     }
 
-    public String sendRegisterRequest(UserData registerRequest) throws Exception {
+    public String sendRegisterRequest(String username, String password, String email) throws Exception {
+        UserData registerRequest = new UserData(username, password, email);
         return COMMUNICATOR.sendRegisterRequest(registerRequest);
     }
 
-    public String sendLoginRequest(LoginRequest loginRequest) throws Exception {
+    public String sendLoginRequest(String username, String password) throws Exception {
+        LoginRequest loginRequest = new LoginRequest(username, password);
         return COMMUNICATOR.sendLoginRequest(loginRequest);
     }
 
@@ -31,11 +34,13 @@ public class ServerFacade {
         COMMUNICATOR.sendLogoutRequest(authToken);
     }
 
-    public int sendCreateGameRequest(CreateGameRequest createGameRequest, String authToken) throws Exception {
+    public int sendCreateGameRequest(String gameName, String authToken) throws Exception {
+        CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
         return COMMUNICATOR.sendCreateGameRequest(createGameRequest, authToken);
     }
 
-    public boolean sendJoinGameRequest(JoinGameRequest joinGameRequest, String authToken) throws Exception {
+    public boolean sendJoinGameRequest(String color, int gameID, String authToken) throws Exception {
+        JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
         return COMMUNICATOR.sendJoinGameRequest(joinGameRequest, authToken);
     }
 
@@ -47,11 +52,14 @@ public class ServerFacade {
         COMMUNICATOR.sendClearRequest(authToken);
     }
 
-    public void sendDeleteGameRequest(String authToken, DeleteGameRequest deleteGameRequest) throws Exception {
+    public void sendDeleteGameRequest(String authToken, int gameID) throws Exception {
+        DeleteGameRequest deleteGameRequest = new DeleteGameRequest(gameID);
         COMMUNICATOR.sendDeleteGameRequest(deleteGameRequest, authToken);
     }
 
-    public void sendWebsocketRequest(UserGameCommand command) throws Exception {
+    public void sendWebsocketRequest(UserGameCommand.CommandType commandType,
+                                     String authToken, int gameID, ChessMove move) throws Exception {
+        UserGameCommand command = new UserGameCommand(commandType, authToken, gameID, move);
         wsClient.send(command);
     }
 }

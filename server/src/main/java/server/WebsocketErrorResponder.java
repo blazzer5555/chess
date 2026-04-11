@@ -6,12 +6,12 @@ import websocket.messages.ServerMessage;
 
 public class WebsocketErrorResponder {
 
-    private final Gson GSON = new Gson();
+    private final Gson gson = new Gson();
 
     public void handleErrorResponse(WsMessageContext ctx, String errorMessage) {
         ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
                 errorMessage, null, null, null);
-        String serializedMessage = GSON.toJson(message);
+        String serializedMessage = gson.toJson(message);
         ctx.send(serializedMessage);
     }
 }

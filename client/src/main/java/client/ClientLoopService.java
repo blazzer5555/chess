@@ -160,9 +160,8 @@ public class ClientLoopService {
         if (move == null) {
             return;
         }
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.HIGHLIGHT_BOARD, authToken, mapOfIDs.get(gameID), move);
         try {
-            server.sendWebsocketRequest(command);
+            server.sendWebsocketRequest(UserGameCommand.CommandType.HIGHLIGHT_BOARD, authToken, mapOfIDs.get(gameID), move);
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the websocket connection.");
@@ -170,9 +169,8 @@ public class ClientLoopService {
     }
 
     private void resign(String authToken, int gameID) {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
         try {
-            server.sendWebsocketRequest(command);
+            server.sendWebsocketRequest(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the websocket connection.");
@@ -189,9 +187,8 @@ public class ClientLoopService {
         if (move == null) {
             return;
         }
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, mapOfIDs.get(gameID), move);
         try {
-            server.sendWebsocketRequest(command);
+            server.sendWebsocketRequest(UserGameCommand.CommandType.MAKE_MOVE, authToken, mapOfIDs.get(gameID), move);
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the websocket connection.");
@@ -272,9 +269,8 @@ public class ClientLoopService {
     }
 
     private int leaveGame(String authToken, int gameID) {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, mapOfIDs.get(gameID), null);
         try {
-            server.sendWebsocketRequest(command);
+            server.sendWebsocketRequest(UserGameCommand.CommandType.LEAVE, authToken, mapOfIDs.get(gameID), null);
             System.out.println("You have left the game.");
             return 0;
         }
@@ -285,9 +281,8 @@ public class ClientLoopService {
     }
 
     private void redrawBoard(String authToken, int gameID) {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.GET_BOARD, authToken, mapOfIDs.get(gameID), null);
         try {
-            server.sendWebsocketRequest(command);
+            server.sendWebsocketRequest(UserGameCommand.CommandType.GET_BOARD, authToken, mapOfIDs.get(gameID), null);
         }
         catch (Exception e) {
             System.out.println("Something went wrong trying to leave the game. Please try again later.");
@@ -296,15 +291,13 @@ public class ClientLoopService {
 
     private PreLoginLoopData register() {
         System.out.println("Please enter a username.");
-        String registerUsername = scanner.nextLine();
+        String username = scanner.nextLine();
         System.out.println("Please enter a password.");
-        String registerPassword;
-        registerPassword = scanner.nextLine();
+        String password = scanner.nextLine();
         System.out.println("Please enter the email you'd like to use with this account");
-        String registerEmail = scanner.nextLine();
-        UserData registerRequest = new UserData(registerUsername, registerPassword, registerEmail);
+        String email = scanner.nextLine();
         try {
-            String authToken = server.sendRegisterRequest(registerRequest);
+            String authToken = server.sendRegisterRequest(username, password, email);
             return new PreLoginLoopData(false, authToken);
         }
         catch (Exception e) {
@@ -315,12 +308,11 @@ public class ClientLoopService {
 
     private PreLoginLoopData login() {
         System.out.println("Please enter your username.");
-        String loginUsername = scanner.nextLine();
+        String username = scanner.nextLine();
         System.out.println("Please enter your password.");
-        String loginPassword = scanner.nextLine();
-        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
+        String password = scanner.nextLine();
         try {
-            String authToken = server.sendLoginRequest(loginRequest);
+            String authToken = server.sendLoginRequest(username, password);
             if (!mapOfIDsPopulated) {
                 boolean populated = populateMapOfIDs(authToken);
                 if (populated) {
@@ -348,8 +340,7 @@ public class ClientLoopService {
         try {
             gameID = Integer.parseInt(scanner.nextLine());
             try {
-                UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
-                server.sendWebsocketRequest(command);
+                server.sendWebsocketRequest(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
                 return new LoginLoopData(authToken, gameID);
             }
             catch (Exception e) {
@@ -397,9 +388,8 @@ public class ClientLoopService {
     private void createGame(String authToken) {
         System.out.println("What would you like to name your game session?");
         String gameName = scanner.nextLine();
-        CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
         try {
-            int returnGameID = server.sendCreateGameRequest(createGameRequest, authToken);
+            int returnGameID = server.sendCreateGameRequest(gameName, authToken);
             if (returnGameID != -1) {
                 mapOfIDs.put(maxIDNumber, returnGameID);
                 maxIDNumber++;
@@ -458,10 +448,9 @@ public class ClientLoopService {
             System.out.println("That is not a valid option. Please type \"1\" for white or \"2\" for black.");
             return new LoginLoopData(authToken, 0);
         }
-        JoinGameRequest joinGameRequest = new JoinGameRequest(color, mapOfIDs.get(gameID));
         boolean successfulJoin;
         try {
-            successfulJoin = server.sendJoinGameRequest(joinGameRequest, authToken);
+            successfulJoin = server.sendJoinGameRequest(color, mapOfIDs.get(gameID), authToken);
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
@@ -469,8 +458,7 @@ public class ClientLoopService {
         }
         if (successfulJoin) {
             try {
-                UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
-                server.sendWebsocketRequest(command);
+                server.sendWebsocketRequest(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
                 return new LoginLoopData(authToken, gameID);
             }
             catch (Exception e) {
@@ -486,9 +474,8 @@ public class ClientLoopService {
         if (Objects.equals(password, "PaulPhoenixSmasher")) {
             System.out.println("Please enter the game ID of the game you'd like to delete.");
             int gameID = Integer.parseInt(scanner.nextLine());
-            DeleteGameRequest request = new DeleteGameRequest(mapOfIDs.get(gameID));
             try {
-                server.sendDeleteGameRequest(authToken, request);
+                server.sendDeleteGameRequest(authToken, mapOfIDs.get(gameID));
                 updateMapOfIDs(authToken);
             }
             catch (Exception e) {
