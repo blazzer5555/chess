@@ -32,7 +32,8 @@ public class UserGameCommand {
         MAKE_MOVE,
         LEAVE,
         RESIGN,
-        GET_BOARD
+        GET_BOARD,
+        HIGHLIGHT_BOARD
     }
 
     public CommandType getCommandType() {
