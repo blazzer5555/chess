@@ -1,22 +1,17 @@
 package server;
 
 import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
-import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DatabaseAuthDAO;
 import dataaccess.DatabaseGameDAO;
 import io.javalin.websocket.*;
 import model.GameData;
 import model.JoinGameRequest;
-import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
-import javax.swing.text.Position;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +19,6 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     final Gson GSON = new Gson();
     private final ConcurrentHashMap<Session, Integer> SESSION_HOLDER = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Session> AUTH_TOKEN_TO_SESSION = new ConcurrentHashMap<>();
     private final DatabaseAuthDAO AUTH_DAO = new DatabaseAuthDAO();
     private final DatabaseGameDAO GAME_DAO = new DatabaseGameDAO();
 
@@ -80,7 +74,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
         }
     }
 
@@ -102,7 +96,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
         }
     }
 
@@ -127,7 +121,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
         }
     }
 
@@ -164,7 +158,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
         }
     }
 
@@ -184,9 +178,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             }
             JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
             GAME_DAO.leavePlayer(request);
-            Session sessionToDelete = AUTH_TOKEN_TO_SESSION.get(command.getAuthToken());
-            AUTH_TOKEN_TO_SESSION.remove(command.getAuthToken());
-            SESSION_HOLDER.remove(sessionToDelete);
+            SESSION_HOLDER.remove(ctx.session);
             String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                     null, notificationMessage, null, null);
@@ -195,7 +187,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
         }
     }
 
@@ -205,21 +197,34 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             ChessGame game = gameData.game();
             String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
             SESSION_HOLDER.put(ctx.session, command.getGameID());
-            AUTH_TOKEN_TO_SESSION.put(command.getAuthToken(), ctx.session);
+            String enumColor;
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
-                color = "WHITE";
+                enumColor = "WHITE";
+                color = "white";
             }
             else {
-                color = "BLACK";
+                enumColor = "BLACK";
+                color = "black";
             }
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, game, color);
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                    null, null, game, enumColor);
             String serializedMessage = GSON.toJson(message);
             ctx.send(serializedMessage);
+            for (Session session: SESSION_HOLDER.keySet()) {
+                if ((Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) && (session != ctx.session)) {
+                    String notificationMessage = "Player " + username + " has joined the game as " + color + ".";
+                    ServerMessage otherClientMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            null, notificationMessage, null, null);
+                    String otherSerializedMessage = GSON.toJson(otherClientMessage);
+                    session.getRemote().sendString(otherSerializedMessage);
+                }
+
+            }
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
-            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+            er.handleErrorResponse(ctx, "Error: There was an error when trying to access the database.");
         }
     }
 }

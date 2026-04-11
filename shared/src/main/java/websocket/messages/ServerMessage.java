@@ -14,7 +14,7 @@ public class ServerMessage {
 
     ServerMessageType serverMessageType;
     private String errorMessage;
-    private final String MESSAGE;
+    private String message;
     private ChessGame game;
     private final String PLAYER_COLOR;
 
@@ -28,7 +28,7 @@ public class ServerMessage {
     public ServerMessage(ServerMessageType type, String error, String notification, ChessGame game, String color) {
         this.serverMessageType = type;
         this.errorMessage = error;
-        this.MESSAGE = notification;
+        this.message = notification;
         this.game = game;
         this.PLAYER_COLOR = color;
     }
@@ -42,7 +42,7 @@ public class ServerMessage {
     }
 
     public String getNotificationMessage() {
-        return MESSAGE;
+        return message;
     }
 
     public ChessGame getGame() {

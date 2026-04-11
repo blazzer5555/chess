@@ -10,7 +10,7 @@ public class WebsocketErrorResponder {
 
     public void handleErrorResponse(WsMessageContext ctx, String errorMessage) {
         ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                errorMessage, "", null, null);
+                errorMessage, null, null, null);
         String serializedMessage = GSON.toJson(message);
         ctx.send(serializedMessage);
     }
