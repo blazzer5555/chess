@@ -22,8 +22,7 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void clearDatabase() throws Exception {
-        LoginRequest adminLogin = new LoginRequest("kythian", "andromeda");
-        String adminAuth = facade.sendLoginRequest(adminLogin);
+        String adminAuth = facade.sendLoginRequest("kythian", "andromeda");
         //UserData adminRegister = new UserData("kythian", "kimball", "bassett");
         //String adminAuth2 = facade.sendRegisterRequest(adminRegister);
         facade.sendClearRequest(adminAuth);
