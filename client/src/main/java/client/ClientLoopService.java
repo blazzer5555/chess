@@ -109,8 +109,7 @@ public class ClientLoopService {
             case(5):
                 return joinGame(authToken);
             case(6):
-                spectateGame(authToken);
-                break;
+                return spectateGame(authToken);
             case(41):
                 deleteGame(authToken);
                 break;
@@ -363,17 +362,20 @@ public class ClientLoopService {
         }
     }
 
-    private void spectateGame(String authToken) {
+    private LoginLoopData spectateGame(String authToken) {
         System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
-        int spectateGameID;
+        int gameID;
         try {
-            spectateGameID = Integer.parseInt(SCANNER.nextLine());
-            DRAWER.drawWhitePerspective(null);
+            gameID = Integer.parseInt(SCANNER.nextLine());
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
+            SERVER.sendWebsocketRequest(command);
+            return new LoginLoopData(authToken, gameID);
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
             System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
         }
+        return new LoginLoopData(authToken, 0);
     }
 
     private void listGames(String authToken) {

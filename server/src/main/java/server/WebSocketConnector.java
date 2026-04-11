@@ -110,8 +110,13 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "Black";
             }
-            else {
+            else if (Objects.equals(gameData.blackUsername(), username)) {
                 color = "White";
+            }
+            else {
+                WebsocketErrorResponder er = new WebsocketErrorResponder();
+                er.handleErrorResponse(ctx, "You are observing! You can't resign from a match that you aren't playing.");
+                return;
             }
             String notificationMessage = username + " has forfeited the match. " + color + " wins!";
             ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
@@ -143,7 +148,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                     return;
                 }
             }
-            else {
+            else if (Objects.equals(gameData.blackUsername(), username)) {
                 color = "BLACK";
                 oppositeColor = "White";
                 enumColor = ChessGame.TeamColor.WHITE;
@@ -153,6 +158,11 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                     er.handleErrorResponse(ctx, "You can't move another person's piece!");
                     return;
                 }
+            }
+            else {
+                WebsocketErrorResponder er = new WebsocketErrorResponder();
+                er.handleErrorResponse(ctx, "You are observing! You can't make any moves.");
+                return;
             }
             try {
                 gameData.game().makeMove(command.getMove());
