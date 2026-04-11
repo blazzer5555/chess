@@ -17,13 +17,9 @@ public class ClientLoopService {
     int maxIDNumber = 1;
     final Scanner SCANNER = new Scanner(System.in);
     final ServerFacade SERVER = new ServerFacade();
-    final ChessBoardDrawer DRAWER = new ChessBoardDrawer();
+    boolean mapOfIDsPopulated = false;
 
     public void runLoop() {
-        boolean serverStartedCorrectly = populateMapOfIDs();
-        if (!serverStartedCorrectly) {
-            return;
-        }
         System.out.println("Did someone ask to play chess?");
         boolean doneWithProgram = false;
         int currentGameID = 0;
@@ -187,9 +183,9 @@ public class ClientLoopService {
     }
 
     private void makeMove(String authToken, int gameID) {
-        System.out.println("Please enter your move. It should be in the format similar to \"e2 f4\".\n" +
-                "The first position is location of the piece you want to move. The second location is where you want to move it.\n" +
-                "If this move would promote a pawn, add a space and the letter corresponding to the piece you want to promote " +
+        System.out.println("Please enter your move. It should be in the format similar to \"e2 f4\".");
+        System.out.println("The first position is location of the piece you want to move. The second location is where you want to move it.");
+        System.out.println("If this move would promote a pawn, add a space and the letter corresponding to the piece you want to promote " +
                 "(n for knight, q for queen etc.).");
         String userMove = SCANNER.nextLine();
         ChessMove move = parseInputForMove(userMove);
@@ -354,22 +350,40 @@ public class ClientLoopService {
         LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
         try {
             String authToken = SERVER.sendLoginRequest(loginRequest);
-            return new PreLoginLoopData(false, authToken);
+            if (!mapOfIDsPopulated) {
+                boolean populated = populateMapOfIDs(authToken);
+                if (populated) {
+                    return new PreLoginLoopData(false, authToken);
+                }
+                else {
+                    System.out.println("Sorry, something went wrong with the server. Please try again later.");
+                    return new PreLoginLoopData(false, null);
+                }
+            }
         }
         catch (Exception e) {
             System.out.println("Sorry, something went wrong with the server. Please try again later.");
-            return new PreLoginLoopData(false, null);
         }
+        return new PreLoginLoopData(false, null);
     }
 
     private LoginLoopData spectateGame(String authToken) {
+        if (mapOfIDs.isEmpty()) {
+            System.out.println("There are no current games available to join. Please create a new one.");
+            return new LoginLoopData(authToken, 0);
+        }
         System.out.println("Please enter the game ID for the game you'd like to spectate (list games to find the game ID)");
         int gameID;
         try {
             gameID = Integer.parseInt(SCANNER.nextLine());
-            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
-            SERVER.sendWebsocketRequest(command);
-            return new LoginLoopData(authToken, gameID);
+            try {
+                UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
+                SERVER.sendWebsocketRequest(command);
+                return new LoginLoopData(authToken, gameID);
+            }
+            catch (Exception e) {
+                System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            }
         }
         catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
@@ -512,35 +526,18 @@ public class ClientLoopService {
         }
     }
 
-    private boolean populateMapOfIDs() {
-        ServerFacade server = new ServerFacade();
-        LoginRequest adminLoginRequest = new LoginRequest("david", "kimball");
-        String adminAuthToken;
+    private boolean populateMapOfIDs(String authToken) {
         try {
-            adminAuthToken = server.sendLoginRequest(adminLoginRequest);
-        }
-        catch (Exception e) {
-            System.out.println("Failed to startup program. Terminating process.");
-            return false;
-        }
-        try {
-            ArrayList<ListGamesResponse> listOfGameData = server.sendListGamesRequest(adminAuthToken);
-            for (ListGamesResponse game: listOfGameData) {
+            ArrayList<ListGamesResponse> listOfGameData = SERVER.sendListGamesRequest(authToken);
+            for (ListGamesResponse game : listOfGameData) {
                 mapOfIDs.put(maxIDNumber, game.gameID());
                 maxIDNumber++;
             }
         }
         catch (Exception e) {
-            System.out.println("Failed to startup program. Terminating process.");
             return false;
         }
-        try {
-            server.sendLogoutRequest(adminAuthToken);
-        }
-        catch (Exception e) {
-            System.out.println("Failed to startup program. Terminating process.");
-            return false;
-        }
+        mapOfIDsPopulated = true;
         return true;
     }
 
