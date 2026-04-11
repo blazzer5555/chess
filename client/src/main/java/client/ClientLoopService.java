@@ -143,7 +143,7 @@ public class ClientLoopService {
             case(2):
                 return leaveGame(authToken, gameID);
             case(3):
-                redrawBoard(gameID);
+                redrawBoard(authToken, gameID);
                 break;
             case(4):
                 makeMove(authToken, gameID);
@@ -162,7 +162,19 @@ public class ClientLoopService {
     }
 
     private void highlightLegalMoves(String authToken, int gameID) {
-
+        System.out.println("Please enter the location for the piece you want to check. It should be in the format similar to \"e2\".\n");
+        String userLocation = SCANNER.nextLine();
+        ChessMove move = parseInputForLocation(userLocation);
+        if (move == null) {
+            return;
+        }
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.HIGHLIGHT_BOARD, authToken, mapOfIDs.get(gameID), move);
+        try {
+            SERVER.sendWebsocketRequest(command);
+        }
+        catch (Exception e) {
+            System.out.println("Sorry, something went wrong with the websocket connection.");
+        }
     }
 
     private void resign(String authToken, int gameID) {
@@ -194,21 +206,36 @@ public class ClientLoopService {
         }
     }
 
-    private ChessMove parseInputForMove(String userMove) {
-        char userFirstCol;
-        char userFirstRow;
-        char userSecondCol;
-        char userSecondRow;
-        try {
-            userFirstCol = userMove.charAt(0);
-            userFirstRow = userMove.charAt(1);
-            userSecondCol = userMove.charAt(3);
-            userSecondRow = userMove.charAt(4);
-        }
-        catch (Exception e) {
+    private ChessMove parseInputForLocation(String userLocation) {
+        if (userLocation.length() < 2) {
             System.out.println("That is not a valid format. Please try again and read the instructions.");
             return null;
         }
+        char userFirstCol = userLocation.charAt(0);
+        char userFirstRow = userLocation.charAt(1);
+        int firstColIndex = convertColToInt(userFirstCol);
+        if (firstColIndex == 9) {
+            System.out.println("Your location's letter is not a letter on the board.");
+            return null;
+        }
+        int firstRowIndex = convertRowToInt(userFirstRow);
+        if (firstRowIndex == 9) {
+            System.out.println("Your location's number is not a number on the board.");
+            return null;
+        }
+        ChessPosition position = new ChessPosition(firstRowIndex, firstColIndex);
+        return new ChessMove(position, null, null);
+    }
+
+    private ChessMove parseInputForMove(String userMove) {
+        if (userMove.length() < 5) {
+            System.out.println("That is not a valid format. Please try again and read the instructions.");
+            return null;
+        }
+        char userFirstCol = userMove.charAt(0);
+        char userFirstRow = userMove.charAt(1);
+        char userSecondCol = userMove.charAt(3);
+        char userSecondRow = userMove.charAt(4);
         ChessPiece.PieceType pieceType = null;
         if (userMove.length() >= 7) {
             char pieceLetter = userMove.charAt(6);
@@ -291,8 +318,14 @@ public class ClientLoopService {
         }
     }
 
-    private void redrawBoard(int gameID) {
-
+    private void redrawBoard(String authToken, int gameID) {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.GET_BOARD, authToken, mapOfIDs.get(gameID), null);
+        try {
+            SERVER.sendWebsocketRequest(command);
+        }
+        catch (Exception e) {
+            System.out.println("Something went wrong trying to leave the game. Please try again later.");
+        }
     }
 
     private PreLoginLoopData register() {

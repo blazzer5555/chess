@@ -1,6 +1,8 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DatabaseAuthDAO;
@@ -8,11 +10,13 @@ import dataaccess.DatabaseGameDAO;
 import io.javalin.websocket.*;
 import model.GameData;
 import model.JoinGameRequest;
+import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
+import javax.swing.text.Position;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,6 +52,57 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
         else if (command.getCommandType() == UserGameCommand.CommandType.RESIGN) {
             handleResign(ctx, command);
+        }
+        else if (command.getCommandType() == UserGameCommand.CommandType.GET_BOARD) {
+            handleGetBoard(ctx, command);
+        }
+        else if (command.getCommandType() == UserGameCommand.CommandType.HIGHLIGHT_BOARD) {
+            handleHighlightBoard(ctx, command);
+        }
+    }
+
+    private void handleHighlightBoard(WsMessageContext ctx, UserGameCommand command) {
+        try {
+            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            ChessGame game = gameData.game();
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String color;
+            if (Objects.equals(gameData.whiteUsername(), username)) {
+                color = "WHITE";
+            }
+            else {
+                color = "BLACK";
+            }
+            String position = command.getMove().getStartPosition().print();
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.HIGHLIGHTED_GAME, "", position, game, color);
+            String serializedMessage = GSON.toJson(message);
+            ctx.send(serializedMessage);
+        }
+        catch (Exception e) {
+            WebsocketErrorResponder er = new WebsocketErrorResponder();
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
+        }
+    }
+
+    private void handleGetBoard(WsMessageContext ctx, UserGameCommand command) {
+        try {
+            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            ChessGame game = gameData.game();
+            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String color;
+            if (Objects.equals(gameData.whiteUsername(), username)) {
+                color = "WHITE";
+            }
+            else {
+                color = "BLACK";
+            }
+            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, "", "", game, color);
+            String serializedMessage = GSON.toJson(message);
+            ctx.send(serializedMessage);
+        }
+        catch (Exception e) {
+            WebsocketErrorResponder er = new WebsocketErrorResponder();
+            er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
     }
 

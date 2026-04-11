@@ -41,6 +41,14 @@ public class WebsocketClient extends Endpoint{
                 else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
                     System.out.println(deserializedMessage.getErrorMessage());
                 }
+                else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.HIGHLIGHTED_GAME) {
+                    if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
+                        DRAWER.drawWhiteAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
+                    }
+                    else {
+                        DRAWER.drawBlackAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
+                    }
+                }
                 else {
                     System.out.println("I don't know what happened, but nothing's broken I guess?");
                 }
