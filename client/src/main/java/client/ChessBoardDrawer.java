@@ -150,9 +150,10 @@ public class ChessBoardDrawer {
     }
 
     public void drawWhiteAvailableMoves(ChessGame game, String pieceLocation) {
+        CharacterConverter cc = new CharacterConverter();
         ChessBoard board = game.getBoard();
-        int row = convertRowToInt(pieceLocation.charAt(1));
-        int col = convertColToInt(pieceLocation.charAt(0));
+        int row = cc.convertRowToInt(pieceLocation.charAt(1));
+        int col = cc.convertColToInt(pieceLocation.charAt(0));
         ChessPosition highlightedPiecePosition = new ChessPosition(row, col);
         Collection<ChessMove> validMoves = game.validMoves(highlightedPiecePosition);
         ArrayList<ChessPosition> validEndingLocations = new ArrayList<>();
@@ -221,9 +222,10 @@ public class ChessBoardDrawer {
     }
 
     public void drawBlackAvailableMoves(ChessGame game, String pieceLocation) {
+        CharacterConverter cc = new CharacterConverter();
         ChessBoard board = game.getBoard();
-        int row = convertRowToInt(pieceLocation.charAt(1));
-        int col = convertColToInt(pieceLocation.charAt(0));
+        int row = cc.convertRowToInt(pieceLocation.charAt(1));
+        int col = cc.convertColToInt(pieceLocation.charAt(0));
         ChessPosition highlightedPiecePosition = new ChessPosition(row, col);
         Collection<ChessMove> validMoves = game.validMoves(highlightedPiecePosition);
         ArrayList<ChessPosition> validEndingLocations = new ArrayList<>();
@@ -291,7 +293,8 @@ public class ChessBoardDrawer {
         System.out.print(RESET_TEXT_COLOR);
     }
 
-    private boolean printHighlightedSquare(ChessPosition highlightedPiecePosition, ChessPosition position, ChessBoard board, Collection<ChessPosition> endPositions, boolean lightSpace) {
+    private boolean printHighlightedSquare(ChessPosition highlightedPiecePosition, ChessPosition position,
+                                           ChessBoard board, Collection<ChessPosition> endPositions, boolean lightSpace) {
         String printStatement = "";
         ChessPiece piece = board.getPiece(position);
         if (piece == null) {
@@ -413,33 +416,5 @@ public class ChessBoardDrawer {
             terminalCodes += BLACK_QUEEN;
         }
         return terminalCodes;
-    }
-
-    private int convertRowToInt(char userRow) {
-        return switch (userRow) {
-            case ('1') -> 1;
-            case ('2') -> 2;
-            case ('3') -> 3;
-            case ('4') -> 4;
-            case ('5') -> 5;
-            case ('6') -> 6;
-            case ('7') -> 7;
-            case ('8') -> 8;
-            default -> 9;
-        };
-    }
-
-    private int convertColToInt(char userCol) {
-        return switch (userCol) {
-            case ('a') -> 1;
-            case ('b') -> 2;
-            case ('c') -> 3;
-            case ('d') -> 4;
-            case ('e') -> 5;
-            case ('f') -> 6;
-            case ('g') -> 7;
-            case ('h') -> 8;
-            default -> 9;
-        };
     }
 }

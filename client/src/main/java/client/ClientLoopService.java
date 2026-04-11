@@ -8,9 +8,6 @@ import websocket.commands.UserGameCommand;
 
 import java.util.*;
 
-//Make a move on the chess board in the form of \"[Position of piece you want to move] " +
-//                        "[Location where you want it to move]\". For example, \"e2 e4\"");
-
 public class ClientLoopService {
 
     Map<Integer, Integer> mapOfIDs = new HashMap<>();
@@ -202,18 +199,19 @@ public class ClientLoopService {
     }
 
     private ChessMove parseInputForLocation(String userLocation) {
+        CharacterConverter cc = new CharacterConverter();
         if (userLocation.length() < 2) {
             System.out.println("That is not a valid format. Please try again and read the instructions.");
             return null;
         }
         char userFirstCol = userLocation.charAt(0);
         char userFirstRow = userLocation.charAt(1);
-        int firstColIndex = convertColToInt(userFirstCol);
+        int firstColIndex = cc.convertColToInt(userFirstCol);
         if (firstColIndex == 9) {
             System.out.println("Your location's letter is not a letter on the board.");
             return null;
         }
-        int firstRowIndex = convertRowToInt(userFirstRow);
+        int firstRowIndex = cc.convertRowToInt(userFirstRow);
         if (firstRowIndex == 9) {
             System.out.println("Your location's number is not a number on the board.");
             return null;
@@ -223,6 +221,7 @@ public class ClientLoopService {
     }
 
     private ChessMove parseInputForMove(String userMove) {
+        CharacterConverter cc = new CharacterConverter();
         if (userMove.length() < 5) {
             System.out.println("That is not a valid format. Please try again and read the instructions.");
             return null;
@@ -247,22 +246,22 @@ public class ClientLoopService {
                 return null;
             }
         }
-        int firstColIndex = convertColToInt(userFirstCol);
+        int firstColIndex = cc.convertColToInt(userFirstCol);
         if (firstColIndex == 9) {
             System.out.println("Your first location's letter is not a letter on the board.");
             return null;
         }
-        int secondColIndex = convertColToInt(userSecondCol);
+        int secondColIndex = cc.convertColToInt(userSecondCol);
         if (secondColIndex == 9) {
             System.out.println("Your second location's letter is not a letter on the board.");
             return null;
         }
-        int firstRowIndex = convertRowToInt(userFirstRow);
+        int firstRowIndex = cc.convertRowToInt(userFirstRow);
         if (firstRowIndex == 9) {
             System.out.println("Your first location's number is not a number on the board.");
             return null;
         }
-        int secondRowIndex = convertRowToInt(userSecondRow);
+        int secondRowIndex = cc.convertRowToInt(userSecondRow);
         if (secondRowIndex == 9) {
             System.out.println("Your second location's number is not a number on the board.");
             return null;
@@ -270,34 +269,6 @@ public class ClientLoopService {
         ChessPosition startPosition = new ChessPosition(firstRowIndex, firstColIndex);
         ChessPosition endPosition = new ChessPosition(secondRowIndex, secondColIndex);
         return new ChessMove(startPosition, endPosition, pieceType);
-    }
-
-    private int convertRowToInt(char userRow) {
-        return switch (userRow) {
-            case ('1') -> 1;
-            case ('2') -> 2;
-            case ('3') -> 3;
-            case ('4') -> 4;
-            case ('5') -> 5;
-            case ('6') -> 6;
-            case ('7') -> 7;
-            case ('8') -> 8;
-            default -> 9;
-        };
-    }
-
-    private int convertColToInt(char userCol) {
-        return switch (userCol) {
-            case ('a') -> 1;
-            case ('b') -> 2;
-            case ('c') -> 3;
-            case ('d') -> 4;
-            case ('e') -> 5;
-            case ('f') -> 6;
-            case ('g') -> 7;
-            case ('h') -> 8;
-            default -> 9;
-        };
     }
 
     private int leaveGame(String authToken, int gameID) {
