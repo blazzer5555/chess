@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, WsCloseHandler {
 
-    final Gson GSON = new Gson();
-    private final ConcurrentHashMap<Session, Integer> SESSION_HOLDER = new ConcurrentHashMap<>();
-    private final DatabaseAuthDAO AUTH_DAO = new DatabaseAuthDAO();
-    private final DatabaseGameDAO GAME_DAO = new DatabaseGameDAO();
+    private final Gson gson = new Gson();
+    private final ConcurrentHashMap<Session, Integer> sessionHolder = new ConcurrentHashMap<>();
+    private final DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
+    private final DatabaseGameDAO gameDAO = new DatabaseGameDAO();
 
     @Override
     public void handleClose(@NotNull WsCloseContext ctx) throws Exception {
@@ -34,7 +34,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
     @Override
     public void handleMessage(@NotNull WsMessageContext ctx) {
         ctx.enableAutomaticPings();
-        UserGameCommand command = GSON.fromJson(ctx.message(), UserGameCommand.class);
+        UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
         if (command.getCommandType() == UserGameCommand.CommandType.CONNECT) {
             handleConnection(ctx, command);
         }
@@ -57,9 +57,9 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private void handleHighlightBoard(WsMessageContext ctx, UserGameCommand command) {
         try {
-            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
             ChessGame game = gameData.game();
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
@@ -69,7 +69,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             }
             String position = command.getMove().getStartPosition().print();
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.HIGHLIGHTED_GAME, null, position, game, color);
-            String serializedMessage = GSON.toJson(message);
+            String serializedMessage = gson.toJson(message);
             ctx.send(serializedMessage);
         }
         catch (Exception e) {
@@ -80,9 +80,9 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private void handleGetBoard(WsMessageContext ctx, UserGameCommand command) {
         try {
-            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
             ChessGame game = gameData.game();
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
@@ -91,7 +91,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 color = "BLACK";
             }
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, game, color);
-            String serializedMessage = GSON.toJson(message);
+            String serializedMessage = gson.toJson(message);
             ctx.send(serializedMessage);
         }
         catch (Exception e) {
@@ -102,15 +102,15 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private void handleResign(WsMessageContext ctx, UserGameCommand command) {
         try {
-            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
             if (gameData.game().isGameOver()) {
                 WebsocketErrorResponder er = new WebsocketErrorResponder();
                 er.handleErrorResponse(ctx, "The other player has already resigned. You win!");
                 return;
             }
             gameData.game().resign();
-            GAME_DAO.updateGame(gameData);
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            gameDAO.updateGame(gameData);
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "Black";
@@ -123,12 +123,12 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 er.handleErrorResponse(ctx, "You are observing! You can't resign from a match that you aren't playing.");
                 return;
             }
-            for (Session session: SESSION_HOLDER.keySet()) {
-                if (Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) {
+            for (Session session: sessionHolder.keySet()) {
+                if (Objects.equals(sessionHolder.get(session), command.getGameID())) {
                     String notificationMessage = username + " has forfeited the match. " + color + " wins!";
                     ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                             null, notificationMessage, null, null);
-                    String serializedMessage = GSON.toJson(notifyMessage);
+                    String serializedMessage = gson.toJson(notifyMessage);
                     session.getRemote().sendString(serializedMessage);
                 }
             }
@@ -141,8 +141,8 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
         try {
-            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             ChessGame.TeamColor enumColor;
             String oppositeColor;
@@ -184,19 +184,19 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             if (gameData.game().isInCheckmate(enumColor) || gameData.game().isInStalemate(enumColor)) {
                 gameData.game().resign();
             }
-            GAME_DAO.updateGame(gameData);
-            for (Session session: SESSION_HOLDER.keySet()) {
-                if (Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) {
+            gameDAO.updateGame(gameData);
+            for (Session session: sessionHolder.keySet()) {
+                if (Objects.equals(sessionHolder.get(session), command.getGameID())) {
                     ServerMessage loadGameMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
                             null, null, gameData.game(), color);
-                    String serializedMessage = GSON.toJson(loadGameMessage);
+                    String serializedMessage = gson.toJson(loadGameMessage);
                     session.getRemote().sendString(serializedMessage);
                     if (session != ctx.session) {
                         String notificationString = username + " has made a move from " + command.getMove().getStartPosition().print() +
                                 " to " + command.getMove().getEndPosition().print();
                         ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                                 null, notificationString, null, null);
-                        String otherSerializedMessage = GSON.toJson(notificationMessage);
+                        String otherSerializedMessage = gson.toJson(notificationMessage);
                         session.getRemote().sendString(otherSerializedMessage);
                     }
                     if (gameData.game().isInCheckmate(enumColor)) {
@@ -219,8 +219,8 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private void handleLeaving(WsMessageContext ctx, UserGameCommand command) {
         try {
-            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             String enumColor;
             if (Objects.equals(gameData.whiteUsername(), username)) {
@@ -232,14 +232,14 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 enumColor = "BLACK";
             }
             JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
-            GAME_DAO.leavePlayer(request);
-            SESSION_HOLDER.remove(ctx.session);
-            for (Session session: SESSION_HOLDER.keySet()) {
-                if ((Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) && (session != ctx.session)) {
+            gameDAO.leavePlayer(request);
+            sessionHolder.remove(ctx.session);
+            for (Session session: sessionHolder.keySet()) {
+                if ((Objects.equals(sessionHolder.get(session), command.getGameID())) && (session != ctx.session)) {
                     String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
                     ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                             null, notificationMessage, null, null);
-                    String serializedMessage = GSON.toJson(message);
+                    String serializedMessage = gson.toJson(message);
                     session.getRemote().sendString(serializedMessage);
                 }
             }
@@ -252,10 +252,10 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private void handleConnection(WsMessageContext ctx, UserGameCommand command) {
         try {
-            GameData gameData = GAME_DAO.getGameByID(command.getGameID());
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
             ChessGame game = gameData.game();
-            String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
-            SESSION_HOLDER.put(ctx.session, command.getGameID());
+            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            sessionHolder.put(ctx.session, command.getGameID());
             String enumColor;
             String color;
             if (Objects.equals(gameData.whiteUsername(), username)) {
@@ -268,14 +268,14 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             }
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
                     null, null, game, enumColor);
-            String serializedMessage = GSON.toJson(message);
+            String serializedMessage = gson.toJson(message);
             ctx.send(serializedMessage);
-            for (Session session: SESSION_HOLDER.keySet()) {
-                if ((Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) && (session != ctx.session)) {
+            for (Session session: sessionHolder.keySet()) {
+                if ((Objects.equals(sessionHolder.get(session), command.getGameID())) && (session != ctx.session)) {
                     String notificationMessage = "Player " + username + " has joined the game as " + color + ".";
                     ServerMessage otherClientMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                             null, notificationMessage, null, null);
-                    String otherSerializedMessage = GSON.toJson(otherClientMessage);
+                    String otherSerializedMessage = gson.toJson(otherClientMessage);
                     session.getRemote().sendString(otherSerializedMessage);
                 }
             }
@@ -290,7 +290,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         String notificationString = color + " is in check!";
         ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                 null, notificationString, null, null);
-        String otherSerializedMessage = GSON.toJson(notificationMessage);
+        String otherSerializedMessage = gson.toJson(notificationMessage);
         session.getRemote().sendString(otherSerializedMessage);
     }
 
@@ -298,7 +298,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         String notificationString = color + " has been checkmated. " + username + " wins!";
         ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                 null, notificationString, null, null);
-        String otherSerializedMessage = GSON.toJson(notificationMessage);
+        String otherSerializedMessage = gson.toJson(notificationMessage);
         session.getRemote().sendString(otherSerializedMessage);
     }
 
@@ -306,7 +306,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         String notificationString = color + " is in stalemate. The game ends in a draw.";
         ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                 null, notificationString, null, null);
-        String otherSerializedMessage = GSON.toJson(notificationMessage);
+        String otherSerializedMessage = gson.toJson(notificationMessage);
         session.getRemote().sendString(otherSerializedMessage);
     }
 }

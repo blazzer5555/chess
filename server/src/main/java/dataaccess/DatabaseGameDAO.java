@@ -11,7 +11,7 @@ import java.util.*;
 
 public class DatabaseGameDAO {
 
-    private final Gson GSON = new Gson();
+    private final Gson gson = new Gson();
 
     public int createGame(String gameName) throws SQLException, DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
@@ -25,7 +25,7 @@ public class DatabaseGameDAO {
                 if (resultSet.next()) {
                     gameID = resultSet.getInt(1);
                     GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
-                    String serializedGameData = GSON.toJson(gameData);
+                    String serializedGameData = gson.toJson(gameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, serializedGameData);
@@ -48,7 +48,7 @@ public class DatabaseGameDAO {
                 var serializedGameData = "";
                 if (rs.next()) {
                     serializedGameData = rs.getString(1);
-                    return GSON.fromJson(serializedGameData, GameData.class);
+                    return gson.fromJson(serializedGameData, GameData.class);
                 }
             }
         }
@@ -64,7 +64,7 @@ public class DatabaseGameDAO {
                 var serializedGameData = "";
                 if (rs.next()) {
                     serializedGameData = rs.getString(1);
-                    return GSON.fromJson(serializedGameData, GameData.class);
+                    return gson.fromJson(serializedGameData, GameData.class);
                 }
             }
         }
@@ -80,7 +80,7 @@ public class DatabaseGameDAO {
                 while(rs.next()) {
                     var serializedGameData = "";
                     serializedGameData = rs.getString(1);
-                    gameList.add(GSON.fromJson(serializedGameData, GameData.class));
+                    gameList.add(gson.fromJson(serializedGameData, GameData.class));
                 }
             }
         }
@@ -88,7 +88,7 @@ public class DatabaseGameDAO {
     }
 
     public void updateGame(GameData gameData) throws Exception {
-        var newSerializedGameData = GSON.toJson(gameData);
+        var newSerializedGameData = gson.toJson(gameData);
         try (var conn = DatabaseManager.getConnection()) {
             String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
             try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
@@ -109,7 +109,7 @@ public class DatabaseGameDAO {
                 var oldSerializedGameData = "";
                 if (rs.next()) {
                     oldSerializedGameData = rs.getString(1);
-                    GameData oldGameData = GSON.fromJson(oldSerializedGameData, GameData.class);
+                    GameData oldGameData = gson.fromJson(oldSerializedGameData, GameData.class);
                     GameData newGameData;
                     String playerUsername = authDAO.getAuthByAuthToken(authToken).username();
                     if (Objects.equals(request.playerColor(), "WHITE")) {
@@ -120,7 +120,7 @@ public class DatabaseGameDAO {
                         newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(),
                                 playerUsername, oldGameData.gameName(), oldGameData.game());
                     }
-                    var newSerializedGameData = GSON.toJson(newGameData);
+                    var newSerializedGameData = gson.toJson(newGameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, newSerializedGameData);
@@ -141,7 +141,7 @@ public class DatabaseGameDAO {
                 var oldSerializedGameData = "";
                 if (rs.next()) {
                     oldSerializedGameData = rs.getString(1);
-                    GameData oldGameData = GSON.fromJson(oldSerializedGameData, GameData.class);
+                    GameData oldGameData = gson.fromJson(oldSerializedGameData, GameData.class);
                     GameData newGameData;
                     if (Objects.equals(request.playerColor(), "WHITE")) {
                         newGameData = new GameData(oldGameData.gameID(), null,
@@ -151,7 +151,7 @@ public class DatabaseGameDAO {
                         newGameData = new GameData(oldGameData.gameID(), oldGameData.whiteUsername(),
                                 null, oldGameData.gameName(), oldGameData.game());
                     }
-                    var newSerializedGameData = GSON.toJson(newGameData);
+                    var newSerializedGameData = gson.toJson(newGameData);
                     String updateStatement = "UPDATE gamedata SET gamedata = ? WHERE id = ?";
                     try (var preparedStatement2 = conn.prepareStatement(updateStatement)) {
                         preparedStatement2.setString(1, newSerializedGameData);

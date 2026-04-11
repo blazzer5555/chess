@@ -17,8 +17,8 @@ import java.util.Objects;
 public class WebsocketClient extends Endpoint{
 
     public Session session;
-    private final Gson GSON = new Gson();
-    private final ChessBoardDrawer DRAWER = new ChessBoardDrawer();
+    private final Gson gson = new Gson();
+    private final ChessBoardDrawer drawer = new ChessBoardDrawer();
 
     public WebsocketClient() throws Exception {
         URI uri = new URI("ws://localhost:8080/ws");
@@ -27,12 +27,12 @@ public class WebsocketClient extends Endpoint{
 
         this.session.addMessageHandler(new MessageHandler.Whole<String>() {
             public void onMessage(String message) {
-                ServerMessage deserializedMessage = GSON.fromJson(message, ServerMessage.class);
+                ServerMessage deserializedMessage = gson.fromJson(message, ServerMessage.class);
                 if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
                     if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
-                        DRAWER.drawWhitePerspective(deserializedMessage.getGame().getBoard());
+                        drawer.drawWhitePerspective(deserializedMessage.getGame().getBoard());
                     } else {
-                        DRAWER.drawBlackPerspective(deserializedMessage.getGame().getBoard());
+                        drawer.drawBlackPerspective(deserializedMessage.getGame().getBoard());
                     }
                 }
                 else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
@@ -43,10 +43,10 @@ public class WebsocketClient extends Endpoint{
                 }
                 else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.HIGHLIGHTED_GAME) {
                     if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
-                        DRAWER.drawWhiteAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
+                        drawer.drawWhiteAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
                     }
                     else {
-                        DRAWER.drawBlackAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
+                        drawer.drawBlackAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
                     }
                 }
                 else {
@@ -58,7 +58,7 @@ public class WebsocketClient extends Endpoint{
     }
 
     public void send(UserGameCommand command) throws IOException {
-        String message = GSON.toJson(command);
+        String message = gson.toJson(command);
         session.getBasicRemote().sendText(message);
     }
 

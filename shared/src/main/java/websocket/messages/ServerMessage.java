@@ -13,10 +13,10 @@ import java.util.Objects;
 public class ServerMessage {
 
     ServerMessageType serverMessageType;
-    private String errorMessage;
-    private String message;
-    private ChessGame game;
-    private final String PLAYER_COLOR;
+    private final String errorMessage;
+    private final String message;
+    private final ChessGame game;
+    private final String playerColor;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -30,7 +30,7 @@ public class ServerMessage {
         this.errorMessage = error;
         this.message = notification;
         this.game = game;
-        this.PLAYER_COLOR = color;
+        this.playerColor = color;
     }
 
     public ServerMessageType getServerMessageType() {
@@ -50,7 +50,7 @@ public class ServerMessage {
     }
 
     public String getColor() {
-        return PLAYER_COLOR;
+        return playerColor;
     }
 
     @Override
