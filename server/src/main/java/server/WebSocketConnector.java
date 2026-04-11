@@ -234,11 +234,15 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
             GAME_DAO.leavePlayer(request);
             SESSION_HOLDER.remove(ctx.session);
-            String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
-            ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    null, notificationMessage, null, null);
-            String serializedMessage = GSON.toJson(message);
-            ctx.send(serializedMessage);
+            for (Session session: SESSION_HOLDER.keySet()) {
+                if ((Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) && (session != ctx.session)) {
+                    String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
+                    ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            null, notificationMessage, null, null);
+                    String serializedMessage = GSON.toJson(message);
+                    session.getRemote().sendString(serializedMessage);
+                }
+            }
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
