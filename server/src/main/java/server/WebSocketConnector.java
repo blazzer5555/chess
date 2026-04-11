@@ -118,11 +118,15 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 er.handleErrorResponse(ctx, "You are observing! You can't resign from a match that you aren't playing.");
                 return;
             }
-            String notificationMessage = username + " has forfeited the match. " + color + " wins!";
-            ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    null, notificationMessage, null, null);
-            String serializedMessage = GSON.toJson(notifyMessage);
-            ctx.send(serializedMessage);
+            for (Session session: SESSION_HOLDER.keySet()) {
+                if (Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) {
+                    String notificationMessage = username + " has forfeited the match. " + color + " wins!";
+                    ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            null, notificationMessage, null, null);
+                    String serializedMessage = GSON.toJson(notifyMessage);
+                    session.getRemote().sendString(serializedMessage);
+                }
+            }
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
