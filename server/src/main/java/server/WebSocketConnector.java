@@ -130,8 +130,12 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             GameData gameData = GAME_DAO.getGameByID(command.getGameID());
             String username = AUTH_DAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
+            ChessGame.TeamColor enumColor;
+            String oppositeColor;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "WHITE";
+                oppositeColor = "Black";
+                enumColor = ChessGame.TeamColor.BLACK;
                 if (gameData.game().getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor()
                         == ChessGame.TeamColor.BLACK) {
                     WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -141,6 +145,8 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             }
             else {
                 color = "BLACK";
+                oppositeColor = "White";
+                enumColor = ChessGame.TeamColor.WHITE;
                 if (gameData.game().getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor()
                         == ChessGame.TeamColor.WHITE) {
                     WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -156,17 +162,35 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 er.handleErrorResponse(ctx, e.getMessage());
                 return;
             }
+            if (gameData.game().isInCheckmate(enumColor) || gameData.game().isInStalemate(enumColor)) {
+                gameData.game().resign();
+            }
             GAME_DAO.updateGame(gameData);
-            ServerMessage loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, gameData.game(), color);
-            String serializedLoadMessage = GSON.toJson(loadMessage);
-            ctx.send(serializedLoadMessage);
-            /* String notificationMessage = username + " has just moved a piece from " +
-                    command.getMove().getStartPosition().print() + " to " +
-                    command.getMove().getEndPosition().print() + ".";
-            ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    "", notificationMessage, null, null);
-            String serializedMessage = GSON.toJson(notifyMessage);
-            ctx.send(serializedMessage); */
+            for (Session session: SESSION_HOLDER.keySet()) {
+                if (Objects.equals(SESSION_HOLDER.get(session), command.getGameID())) {
+                    ServerMessage loadGameMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                            null, null, gameData.game(), color);
+                    String serializedMessage = GSON.toJson(loadGameMessage);
+                    session.getRemote().sendString(serializedMessage);
+                    if (session != ctx.session) {
+                        String notificationString = username + " has made a move from " + command.getMove().getStartPosition().print() +
+                                " to " + command.getMove().getEndPosition().print();
+                        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                null, notificationString, null, null);
+                        String otherSerializedMessage = GSON.toJson(notificationMessage);
+                        session.getRemote().sendString(otherSerializedMessage);
+                    }
+                    if (gameData.game().isInCheckmate(enumColor)) {
+                        notifyCheckmate(username, session, oppositeColor);
+                    }
+                    else if (gameData.game().isInCheck(enumColor)) {
+                        notifyCheck(session, oppositeColor);
+                    }
+                    else if (gameData.game().isInStalemate(enumColor)) {
+                        notifyStalemate(session, oppositeColor);
+                    }
+                }
+            }
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -231,12 +255,35 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                     String otherSerializedMessage = GSON.toJson(otherClientMessage);
                     session.getRemote().sendString(otherSerializedMessage);
                 }
-
             }
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
             er.handleErrorResponse(ctx, "There was an error when trying to access the database.");
         }
+    }
+
+    private void notifyCheck(Session session, String color) throws Exception {
+        String notificationString = color + " is in check!";
+        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                null, notificationString, null, null);
+        String otherSerializedMessage = GSON.toJson(notificationMessage);
+        session.getRemote().sendString(otherSerializedMessage);
+    }
+
+    private void notifyCheckmate(String username, Session session, String color) throws Exception {
+        String notificationString = color + " has been checkmated. " + username + " wins!";
+        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                null, notificationString, null, null);
+        String otherSerializedMessage = GSON.toJson(notificationMessage);
+        session.getRemote().sendString(otherSerializedMessage);
+    }
+
+    private void notifyStalemate(Session session, String color) throws Exception {
+        String notificationString = color + " is in stalemate. The game ends in a draw.";
+        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                null, notificationString, null, null);
+        String otherSerializedMessage = GSON.toJson(notificationMessage);
+        session.getRemote().sendString(otherSerializedMessage);
     }
 }
