@@ -33,7 +33,6 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     @Override
     public void handleMessage(@NotNull WsMessageContext ctx) {
-        ctx.enableAutomaticPings();
         UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
         if (command.getCommandType() == UserGameCommand.CommandType.CONNECT) {
             handleConnection(ctx, command);
