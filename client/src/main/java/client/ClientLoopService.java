@@ -41,7 +41,7 @@ public class ClientLoopService {
 
     private PreLoginLoopData preLoginLoop() {
         boolean doneWithProgram = false;
-        System.out.println("Type the number associated with the action, then press enter. \n");
+        System.out.println("Type the number associated with the action, then press enter.");
         System.out.println("1. Help\n2. Quit\n3. Log in\n4. Register");
         int userResponse;
         try {
@@ -71,7 +71,7 @@ public class ClientLoopService {
     }
 
     private LoginLoopData loginLoop(String authToken) {
-        System.out.println("Type the number associated with the action, then press enter. \n");
+        System.out.println("Type the number associated with the action, then press enter.");
         System.out.println("1. Help\n2. Log out\n3. Create game\n4. List games\n5. Play game\n6. Spectate game");
         int userResponse;
         try {
@@ -111,7 +111,7 @@ public class ClientLoopService {
     }
 
     private int gameplayLoop(String authToken, int gameID) {
-        System.out.println("Type the number associated with the action, then press enter. \n");
+        System.out.println("Type the number associated with the action, then press enter.");
         System.out.println("1. Help\n2. Leave game\n3. Redraw chess board\n4. Make move\n5. Resign\n6. Highlight legal moves");
         int userResponse;
         try {
@@ -164,10 +164,14 @@ public class ClientLoopService {
     }
 
     private void resign(String authToken, int gameID) {
-        try {
-            server.sendWebsocketRequest(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        System.out.println("Are you sure you want to resign? Type \"yes\" to resign.");
+        String confirmation = scanner.nextLine();
+        if (Objects.equals(confirmation, "yes")) {
+            try {
+                server.sendWebsocketRequest(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -342,6 +346,7 @@ public class ClientLoopService {
                 System.out.println("There are no current games. Create a game first.");
                 return;
             }
+            updateMapOfIDs(authToken);
             for (int i = 1; i < listOfGameData.size() + 1; i++) {
                 ListGamesResponse currentGame = listOfGameData.get(i - 1);
                 String variableWhitePlayer;
@@ -396,6 +401,10 @@ public class ClientLoopService {
         System.out.println("Which game would you like to join?");
         try {
             gameID = Integer.parseInt(scanner.nextLine());
+            if (mapOfIDs.get(gameID) == null) {
+                System.out.println("There is no game with that ID number.");
+                return new LoginLoopData(authToken, 0);
+            }
         } catch (Exception e) {
             System.out.println("That is not a valid input. Please type the number associated with the game you want to join.");
             System.out.println("If you need the list of games with their IDs, select \"List game\" from the menu.");
