@@ -31,8 +31,11 @@ public class WebsocketClient extends Endpoint{
                 if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
                     if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
                         drawer.drawWhitePerspective(deserializedMessage.getGame().getBoard());
-                    } else {
+                    } else if (Objects.equals(deserializedMessage.getColor(), "BLACK")) {
                         drawer.drawBlackPerspective(deserializedMessage.getGame().getBoard());
+                    }
+                    else {
+                        drawer.drawWhitePerspective(deserializedMessage.getGame().getBoard());
                     }
                 }
                 else if (deserializedMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
@@ -45,8 +48,11 @@ public class WebsocketClient extends Endpoint{
                     if (Objects.equals(deserializedMessage.getColor(), "WHITE")) {
                         drawer.drawWhiteAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
                     }
-                    else {
+                    else if (Objects.equals(deserializedMessage.getColor(), "BLACK")) {
                         drawer.drawBlackAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
+                    }
+                    else {
+                        drawer.drawWhiteAvailableMoves(deserializedMessage.getGame(), deserializedMessage.getNotificationMessage());
                     }
                 }
                 else {
