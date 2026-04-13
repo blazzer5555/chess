@@ -159,7 +159,7 @@ public class ClientLoopService {
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.HIGHLIGHT_BOARD, authToken, mapOfIDs.get(gameID), move);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the websocket connection.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -167,7 +167,7 @@ public class ClientLoopService {
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.RESIGN, authToken, mapOfIDs.get(gameID), null);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the websocket connection.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -184,7 +184,7 @@ public class ClientLoopService {
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.MAKE_MOVE, authToken, mapOfIDs.get(gameID), move);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the websocket connection.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -267,7 +267,7 @@ public class ClientLoopService {
             System.out.println("You have left the game.");
             return 0;
         } catch (Exception e) {
-            System.out.println("Something went wrong trying to leave the game. Please try again later.");
+            System.out.println(e.getMessage());
             return gameID;
         }
     }
@@ -276,7 +276,7 @@ public class ClientLoopService {
         try {
             server.sendWebsocketRequest(UserGameCommand.CommandType.GET_BOARD, authToken, mapOfIDs.get(gameID), null);
         } catch (Exception e) {
-            System.out.println("Something went wrong trying to leave the game. Please try again later.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -291,7 +291,7 @@ public class ClientLoopService {
             String authToken = server.sendRegisterRequest(username, password, email);
             return new PreLoginLoopData(false, authToken);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            System.out.println(e.getMessage());
             return new PreLoginLoopData(false, null);
         }
     }
@@ -313,7 +313,7 @@ public class ClientLoopService {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            System.out.println(e.getMessage());
         }
         return new PreLoginLoopData(false, null);
     }
@@ -359,7 +359,7 @@ public class ClientLoopService {
                 System.out.println(i + ": " + currentGame.gameName() + ". " + variableWhitePlayer + " " + variableBlackPlayer);
             }
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -373,7 +373,7 @@ public class ClientLoopService {
                 maxIDNumber++;
             }
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -382,7 +382,7 @@ public class ClientLoopService {
             server.sendLogoutRequest(authToken);
             return new LoginLoopData(null, 0);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            System.out.println(e.getMessage());
             return new LoginLoopData(authToken, 0);
         }
     }
@@ -424,7 +424,7 @@ public class ClientLoopService {
         try {
             successfulJoin = server.sendJoinGameRequest(color, mapOfIDs.get(gameID), authToken);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the server. Please try again later.");
+            System.out.println(e.getMessage());
             return new LoginLoopData(authToken, 0);
         }
         if (successfulJoin) {
@@ -443,7 +443,7 @@ public class ClientLoopService {
                 server.sendDeleteGameRequest(authToken, mapOfIDs.get(gameID));
                 updateMapOfIDs(authToken);
             } catch (Exception e) {
-                System.out.println("Something went wrong with the server. Please try again later.");
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -453,7 +453,7 @@ public class ClientLoopService {
             server.sendWebsocketRequest(UserGameCommand.CommandType.CONNECT, authToken, mapOfIDs.get(gameID), null);
             return new LoginLoopData(authToken, gameID);
         } catch (Exception e) {
-            System.out.println("Sorry, something went wrong with the websocket connection.");
+            System.out.println(e.getMessage());
             return new LoginLoopData(authToken, 0);
         }
     }
@@ -482,7 +482,7 @@ public class ClientLoopService {
                 maxIDNumber++;
             }
         } catch (Exception e) {
-            System.out.println("Failed to update mapOfIDs.");
+            System.out.println(e.getMessage());
         }
     }
 }
