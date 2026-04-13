@@ -155,6 +155,11 @@ public class ChessBoardDrawer {
         int row = cc.convertRowToInt(pieceLocation.charAt(1));
         int col = cc.convertColToInt(pieceLocation.charAt(0));
         ChessPosition highlightedPiecePosition = new ChessPosition(row, col);
+        if (board.getPiece(highlightedPiecePosition) == null) {
+            drawWhitePerspective(board);
+            System.out.println("There is no piece at that location.");
+            return;
+        }
         Collection<ChessMove> validMoves = game.validMoves(highlightedPiecePosition);
         ArrayList<ChessPosition> validEndingLocations = new ArrayList<>();
         for (ChessMove move: validMoves) {
@@ -227,6 +232,11 @@ public class ChessBoardDrawer {
         int row = cc.convertRowToInt(pieceLocation.charAt(1));
         int col = cc.convertColToInt(pieceLocation.charAt(0));
         ChessPosition highlightedPiecePosition = new ChessPosition(row, col);
+        if (board.getPiece(highlightedPiecePosition) == null) {
+            drawBlackPerspective(board);
+            System.out.println("There is no piece at that location.");
+            return;
+        }
         Collection<ChessMove> validMoves = game.validMoves(highlightedPiecePosition);
         ArrayList<ChessPosition> validEndingLocations = new ArrayList<>();
         for (ChessMove move: validMoves) {
