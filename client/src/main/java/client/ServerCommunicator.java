@@ -10,8 +10,8 @@ import java.util.ArrayList;
 
 public class ServerCommunicator {
 
-    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
-    private static final Gson GSON = new Gson();
+    private final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private final Gson GSON = new Gson();
 
     public String sendRegisterRequest(UserData registerRequest) throws Exception {
         String urlString = "http://localhost:8080/user";

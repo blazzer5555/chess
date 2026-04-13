@@ -2,6 +2,7 @@ package server;
 
 import dataaccess.*;
 import io.javalin.*;
+import io.javalin.websocket.WsContext;
 
 public class Server {
 
@@ -10,7 +11,10 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         WebSocketConnector connector = new WebSocketConnector();
-        javalin.ws("/ws", ws -> ws.onMessage(connector));
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(WsContext::enableAutomaticPings);
+            ws.onMessage(connector);
+        });
         RegisterHandler registerer = new RegisterHandler();
         javalin.post("/user", registerer);
         LoginHandler loggerIn = new LoginHandler();

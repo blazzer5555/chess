@@ -8,8 +8,8 @@ import java.util.ArrayList;
 
 public class ServerFacade {
 
-    public static final ServerCommunicator COMMUNICATOR = new ServerCommunicator();
-    public static WebsocketClient wsClient;
+    public final ServerCommunicator COMMUNICATOR = new ServerCommunicator();
+    public WebsocketClient wsClient;
 
     public ServerFacade() {
         try {
