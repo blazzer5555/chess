@@ -19,6 +19,7 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
 
     private final Gson gson = new Gson();
     private final ConcurrentHashMap<Session, Integer> sessionHolder = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Session, String> sessionToAuth = new ConcurrentHashMap<>();
     private final DatabaseAuthDAO authDAO = new DatabaseAuthDAO();
     private final DatabaseGameDAO gameDAO = new DatabaseGameDAO();
 
@@ -60,11 +61,11 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             ChessGame game = gameData.game();
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
-            if (Objects.equals(gameData.whiteUsername(), username)) {
-                color = "WHITE";
+            if (Objects.equals(gameData.blackUsername(), username)) {
+                color = "BLACK";
             }
             else {
-                color = "BLACK";
+                color = "WHITE";
             }
             String position = command.getMove().getStartPosition().print();
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.HIGHLIGHTED_GAME, null, position, game, color);
@@ -83,11 +84,11 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             ChessGame game = gameData.game();
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
-            if (Objects.equals(gameData.whiteUsername(), username)) {
-                color = "WHITE";
+            if (Objects.equals(gameData.blackUsername(), username)) {
+                color = "BLACK";
             }
             else {
-                color = "BLACK";
+                color = "WHITE";
             }
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, null, null, game, color);
             String serializedMessage = gson.toJson(message);
@@ -122,15 +123,8 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 er.handleErrorResponse(ctx, "You are observing! You can't resign from a match that you aren't playing.");
                 return;
             }
-            for (Session session: sessionHolder.keySet()) {
-                if (Objects.equals(sessionHolder.get(session), command.getGameID())) {
-                    String notificationMessage = username + " has forfeited the match. " + color + " wins!";
-                    ServerMessage notifyMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                            null, notificationMessage, null, null);
-                    String serializedMessage = gson.toJson(notifyMessage);
-                    session.getRemote().sendString(serializedMessage);
-                }
-            }
+            String notificationMessage = username + " has forfeited the match. " + color + " wins!";
+            notifyAllOtherPlayers(command, ctx, notificationMessage);
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -141,14 +135,12 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
         try {
             GameData gameData = gameDAO.getGameByID(command.getGameID());
-            String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
-            String color;
-            ChessGame.TeamColor enumColor;
+            String rootUsername = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
+            ChessGame.TeamColor enumOppositeColor;
             String oppositeColor;
-            if (Objects.equals(gameData.whiteUsername(), username)) {
-                color = "WHITE";
+            if (Objects.equals(gameData.whiteUsername(), rootUsername)) {
                 oppositeColor = "Black";
-                enumColor = ChessGame.TeamColor.BLACK;
+                enumOppositeColor = ChessGame.TeamColor.BLACK;
                 if (gameData.game().getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor()
                         == ChessGame.TeamColor.BLACK) {
                     WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -156,10 +148,9 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                     return;
                 }
             }
-            else if (Objects.equals(gameData.blackUsername(), username)) {
-                color = "BLACK";
+            else if (Objects.equals(gameData.blackUsername(), rootUsername)) {
                 oppositeColor = "White";
-                enumColor = ChessGame.TeamColor.WHITE;
+                enumOppositeColor = ChessGame.TeamColor.WHITE;
                 if (gameData.game().getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor()
                         == ChessGame.TeamColor.WHITE) {
                     WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -180,35 +171,12 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
                 er.handleErrorResponse(ctx, e.getMessage());
                 return;
             }
-            if (gameData.game().isInCheckmate(enumColor) || gameData.game().isInStalemate(enumColor)) {
+            if (gameData.game().isInCheckmate(enumOppositeColor) || gameData.game().isInStalemate(enumOppositeColor)) {
                 gameData.game().resign();
             }
             gameDAO.updateGame(gameData);
-            for (Session session: sessionHolder.keySet()) {
-                if (Objects.equals(sessionHolder.get(session), command.getGameID())) {
-                    ServerMessage loadGameMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
-                            null, null, gameData.game(), color);
-                    String serializedMessage = gson.toJson(loadGameMessage);
-                    session.getRemote().sendString(serializedMessage);
-                    if (session != ctx.session) {
-                        String notificationString = username + " has made a move from " + command.getMove().getStartPosition().print() +
-                                " to " + command.getMove().getEndPosition().print();
-                        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                null, notificationString, null, null);
-                        String otherSerializedMessage = gson.toJson(notificationMessage);
-                        session.getRemote().sendString(otherSerializedMessage);
-                    }
-                    if (gameData.game().isInCheckmate(enumColor)) {
-                        notifyCheckmate(username, session, oppositeColor);
-                    }
-                    else if (gameData.game().isInCheck(enumColor)) {
-                        notifyCheck(session, oppositeColor);
-                    }
-                    else if (gameData.game().isInStalemate(enumColor)) {
-                        notifyStalemate(session, oppositeColor);
-                    }
-                }
-            }
+            MoveMadeInfo info = new MoveMadeInfo(command, ctx, gameData, rootUsername, enumOppositeColor, oppositeColor);
+            notifyMoveMade(info);
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -222,26 +190,32 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             String color;
             String enumColor;
+            boolean observerLeaving = false;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 color = "white";
                 enumColor = "WHITE";
             }
-            else {
+            else if (Objects.equals(gameData.blackUsername(), username)){
                 color = "black";
                 enumColor = "BLACK";
             }
-            JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
-            gameDAO.leavePlayer(request);
-            sessionHolder.remove(ctx.session);
-            for (Session session: sessionHolder.keySet()) {
-                if ((Objects.equals(sessionHolder.get(session), command.getGameID())) && (session != ctx.session)) {
-                    String notificationMessage = "Player " + username + " is no longer playing " + color + ".";
-                    ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                            null, notificationMessage, null, null);
-                    String serializedMessage = gson.toJson(message);
-                    session.getRemote().sendString(serializedMessage);
-                }
+            else {
+                observerLeaving = true;
+                color = "white";
+                enumColor = "WHITE";
             }
+            String notificationMessage;
+            if (observerLeaving) {
+                notificationMessage = "Player " + username + " is no longer spectating the game.";
+            }
+            else {
+                notificationMessage = "Player " + username + " is no longer playing " + color + ".";
+                JoinGameRequest request = new JoinGameRequest(enumColor, command.getGameID());
+                gameDAO.leavePlayer(request);
+            }
+            sessionHolder.remove(ctx.session);
+            sessionToAuth.remove(ctx.session);
+            notifyAllOtherPlayers(command, ctx, notificationMessage);
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -255,29 +229,35 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
             ChessGame game = gameData.game();
             String username = authDAO.getAuthByAuthToken(command.getAuthToken()).username();
             sessionHolder.put(ctx.session, command.getGameID());
+            sessionToAuth.put(ctx.session, command.getAuthToken());
             String enumColor;
             String color;
+            boolean observerJoined = false;
             if (Objects.equals(gameData.whiteUsername(), username)) {
                 enumColor = "WHITE";
                 color = "white";
             }
-            else {
+            else if (Objects.equals(gameData.blackUsername(), username)) {
                 enumColor = "BLACK";
                 color = "black";
+            }
+            else {
+                enumColor = "WHITE";
+                color = "white";
+                observerJoined = true;
             }
             ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
                     null, null, game, enumColor);
             String serializedMessage = gson.toJson(message);
             ctx.send(serializedMessage);
-            for (Session session: sessionHolder.keySet()) {
-                if ((Objects.equals(sessionHolder.get(session), command.getGameID())) && (session != ctx.session)) {
-                    String notificationMessage = "Player " + username + " has joined the game as " + color + ".";
-                    ServerMessage otherClientMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                            null, notificationMessage, null, null);
-                    String otherSerializedMessage = gson.toJson(otherClientMessage);
-                    session.getRemote().sendString(otherSerializedMessage);
-                }
+            String notificationMessage;
+            if (observerJoined) {
+                notificationMessage = "Player " + username + " is now spectating the game.";
             }
+            else {
+                notificationMessage = "Player " + username + " has joined the game as " + color + ".";
+            }
+            notifyAllOtherPlayers(command, ctx, notificationMessage);
         }
         catch (Exception e) {
             WebsocketErrorResponder er = new WebsocketErrorResponder();
@@ -285,24 +265,82 @@ public class WebSocketConnector implements WsMessageHandler, WsConnectHandler, W
         }
     }
 
-    private void notifyCheck(Session session, String color) throws Exception {
-        String notificationString = color + " is in check!";
-        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                null, notificationString, null, null);
-        String otherSerializedMessage = gson.toJson(notificationMessage);
-        session.getRemote().sendString(otherSerializedMessage);
+    private void notifyAllOtherPlayers(UserGameCommand command, WsMessageContext ctx, String notificationMessage) throws Exception {
+        for (Session session: sessionHolder.keySet()) {
+            if ((Objects.equals(sessionHolder.get(session), command.getGameID())) && (session != ctx.session)) {
+                notify(session, notificationMessage);
+            }
+        }
     }
 
-    private void notifyCheckmate(String username, Session session, String color) throws Exception {
-        String notificationString = color + " has been checkmated. " + username + " wins!";
-        ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                null, notificationString, null, null);
-        String otherSerializedMessage = gson.toJson(notificationMessage);
-        session.getRemote().sendString(otherSerializedMessage);
+    private void notifyMoveMade(MoveMadeInfo info) throws Exception {
+        for (Session session: sessionHolder.keySet()) {
+            if (Objects.equals(sessionHolder.get(session), info.command().getGameID())) {
+                String recipientUsername = authDAO.getAuthByAuthToken(sessionToAuth.get(session)).username();
+                String color;
+                if (Objects.equals(info.gameData().blackUsername(), recipientUsername)) {
+                    color = "BLACK";
+                }
+                else {
+                    color = "WHITE";
+                }
+                ServerMessage loadGameMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                        null, null, info.gameData().game(), color);
+                String serializedMessage = gson.toJson(loadGameMessage);
+                session.getRemote().sendString(serializedMessage);
+                if (session != info.ctx().session) {
+                    String notificationString = info.rootUsername() + " has made a move from " +
+                            info.command().getMove().getStartPosition().print() +
+                            " to " + info.command().getMove().getEndPosition().print();
+                    notify(session, notificationString);
+                }
+                if (info.gameData().game().isInCheckmate(info.enumOppositeColor())) {
+                    notifyCheckmate(session, info.oppositeColor(), info.gameData());
+                }
+                else if (info.gameData().game().isInCheck(info.enumOppositeColor())) {
+                    notifyCheck(session, info.oppositeColor(), info.gameData());
+                }
+                else if (info.gameData().game().isInStalemate(info.enumOppositeColor())) {
+                    notifyStalemate(session, info.oppositeColor(), info.gameData());
+                }
+            }
+        }
     }
 
-    private void notifyStalemate(Session session, String color) throws Exception {
-        String notificationString = color + " is in stalemate. The game ends in a draw.";
+    private void notifyCheck(Session session, String color, GameData gameData) throws Exception {
+        String notificationString;
+        if (Objects.equals(color, "BLACK")) {
+            notificationString = gameData.blackUsername() + " is in check!";
+        }
+        else {
+            notificationString = gameData.whiteUsername() + " is in check!";
+        }
+        notify(session, notificationString);
+    }
+
+    private void notifyCheckmate(Session session, String color, GameData gameData) throws Exception {
+        String notificationString;
+        if (Objects.equals(color, "BLACK")) {
+            notificationString = gameData.blackUsername() + " has been checkmated. " + gameData.whiteUsername() + " wins!";
+        }
+        else {
+            notificationString = gameData.whiteUsername() + " has been checkmated. " + gameData.blackUsername() + " wins!";
+        }
+        notify(session, notificationString);
+    }
+
+    private void notifyStalemate(Session session, String color, GameData gameData) throws Exception {
+        String notificationString;
+        if (Objects.equals(color, "BLACK")) {
+            notificationString = gameData.blackUsername() + " is in stalemate. The game ends in a draw.";
+        }
+        else {
+            notificationString = gameData.whiteUsername() + " is in stalemate. The game ends in a draw.";
+        }
+        notify(session, notificationString);
+    }
+
+    private void notify(Session session, String notificationString) throws Exception {
         ServerMessage notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                 null, notificationString, null, null);
         String otherSerializedMessage = gson.toJson(notificationMessage);
